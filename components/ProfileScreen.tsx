@@ -1,7 +1,7 @@
 "use client";
-
 import { useApp } from "./AppState";
-import { Card, GhostButton, Chip } from "./ui";
+import { Chip, SectionLabel } from "./ui";
+import { Icon } from "./icons";
 import { userInitials } from "@/lib/models";
 
 export default function ProfileScreen() {
@@ -9,77 +9,76 @@ export default function ProfileScreen() {
   const user = app.user;
   const prefs = app.preferences;
 
-  const setUnits = (units: "metric" | "imperial") =>
-    app.setPreferences({ ...prefs, units });
-  const setRest = (defaultRestSeconds: number) =>
-    app.setPreferences({ ...prefs, defaultRestSeconds });
+  const setUnits = (units: "metric" | "imperial") => app.setPreferences({ ...prefs, units });
+  const setRest = (defaultRestSeconds: number) => app.setPreferences({ ...prefs, defaultRestSeconds });
 
   return (
-    <div className="flex flex-col gap-4 px-4 pb-28 pt-4">
-      <Card className="flex items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-deepGreen text-accentGreen font-display text-2xl">
-          {user ? userInitials(user) : "YOU"}
+    <div className="px-6 pt-9">
+      <h1 className="font-display text-[44px] text-white leading-none mb-5">Profile</h1>
+
+      {/* identity card */}
+      <div className="rounded-2xl bg-bgCard border border-border p-5 mb-3 flex items-center gap-4">
+        <div className="relative shrink-0">
+          <div className="h-16 w-16 rounded-full bg-accentGreen text-deepGreen font-display text-2xl flex items-center justify-center ring-4 ring-accentGreen/15">
+            {user ? userInitials(user) : "YOU"}
+          </div>
         </div>
         <div className="min-w-0">
-          <div className="truncate text-lg font-semibold text-white">
-            {user?.name ?? "Athlete"}
-          </div>
-          <div className="truncate text-sm text-textFaint">
-            {user?.email ?? "—"}
-          </div>
+          <div className="truncate text-[18px] font-semibold text-white">{user?.name ?? "Athlete"}</div>
+          <div className="truncate text-[13px] text-textFaint mt-0.5">{user?.email ?? "—"}</div>
+          {app.cloudEnabled && (
+            <div className="mt-1.5 inline-flex items-center gap-1.5 text-[11px] text-accentGreen font-medium">
+              <Icon name="check" size={13} /> Synced to cloud
+            </div>
+          )}
         </div>
-      </Card>
+      </div>
 
-      <Card>
-        <div className="mb-3 text-sm font-semibold text-textMuted">Units</div>
-        <div className="flex gap-2">
+      <div className="rounded-2xl bg-bgCard border border-border p-5 mb-3">
+        <SectionLabel className="mb-3">Units</SectionLabel>
+        <div className="grid grid-cols-2 gap-2.5">
           <Chip label="Imperial (lb)" selected={prefs.units === "imperial"} onClick={() => setUnits("imperial")} />
           <Chip label="Metric (kg)" selected={prefs.units === "metric"} onClick={() => setUnits("metric")} />
         </div>
-      </Card>
+      </div>
 
-      <Card>
-        <div className="mb-3 text-sm font-semibold text-textMuted">Default rest timer</div>
+      <div className="rounded-2xl bg-bgCard border border-border p-5 mb-3">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-accentGreen"><Icon name="clock" size={15} /></span>
+          <SectionLabel>Default rest timer</SectionLabel>
+        </div>
         <div className="flex flex-wrap gap-2">
           {[45, 60, 90, 120, 180].map((s) => (
-            <Chip
-              key={s}
-              label={s < 60 ? `${s}s` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`}
-              selected={prefs.defaultRestSeconds === s}
-              onClick={() => setRest(s)}
-            />
+            <Chip key={s} label={s < 60 ? `${s}s` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`}
+              selected={prefs.defaultRestSeconds === s} onClick={() => setRest(s)} />
           ))}
         </div>
-      </Card>
+      </div>
 
-      <Card>
-        <div className="mb-3 text-sm font-semibold text-textMuted">Your plan</div>
-        <div className="text-sm text-textFaint">
-          {app.survey && app.survey.goal
-            ? "Survey complete. Regenerate workouts anytime from Home."
-            : "No survey yet."}
+      <div className="rounded-2xl bg-bgCard border border-border p-5 mb-3">
+        <SectionLabel className="mb-2">Your plan</SectionLabel>
+        <div className="text-[13px] text-textFaint mb-3">
+          {app.survey?.goal ? "Survey complete. Regenerate workouts anytime from Today." : "No survey yet."}
         </div>
-        <div className="mt-3">
-          <GhostButton onClick={app.goToSurvey}>Retake survey</GhostButton>
-        </div>
-      </Card>
+        <button onClick={app.goToSurvey}
+          className="w-full rounded-button border border-borderStrong text-white font-medium py-3 text-[14px] transition active:scale-[0.98] hover:bg-white/5">
+          Retake survey
+        </button>
+      </div>
 
-      <div className="flex flex-col gap-2 pt-2">
-        <GhostButton onClick={app.signOut}>Sign out</GhostButton>
-        <button
-          onClick={() => {
-            if (confirm("This erases all your data on this device. Continue?")) {
-              app.resetAll();
-            }
-          }}
-          className="rounded-button py-3 text-sm font-semibold text-red-400 transition-colors hover:bg-red-500/10"
-        >
+      <div className="flex flex-col gap-2 pt-1 pb-2">
+        <button onClick={app.signOut}
+          className="w-full rounded-button border border-borderStrong text-white font-medium py-3 text-[14px] transition active:scale-[0.98] hover:bg-white/5 flex items-center justify-center gap-2">
+          <Icon name="back" size={16} /> Sign out
+        </button>
+        <button onClick={() => { if (confirm("This erases all your data on this device. Continue?")) app.resetAll(); }}
+          className="rounded-button py-3 text-[14px] font-semibold text-red-400 transition hover:bg-red-500/10">
           Reset all data
         </button>
       </div>
 
-      <div className="pt-2 text-center text-xs text-textFaint">
-        FitFlow Web · local-only data
+      <div className="pt-2 pb-4 text-center text-[12px] text-textFaint">
+        FitFlow · Train SMART. Move every day.
       </div>
     </div>
   );

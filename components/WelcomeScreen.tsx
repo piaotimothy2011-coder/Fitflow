@@ -51,11 +51,11 @@ export default function WelcomeScreen() {
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const features = [
-    "Survey-built training plans",
-    "Per-set logging + rest timer",
-    "Recovery-aware smart plans",
-    "Macro & water tracking",
+  const pillars: { icon: "strength" | "spark" | "flame" | "diet"; text: string }[] = [
+    { icon: "strength", text: "Custom plan from a 60-second quiz" },
+    { icon: "spark", text: "Weights auto-progress every session" },
+    { icon: "flame", text: "Recovery-aware — trains fresh muscles" },
+    { icon: "diet", text: "Macros, water & PRs in one place" },
   ];
 
   async function handleCloudSubmit(e: React.FormEvent) {
@@ -84,17 +84,17 @@ export default function WelcomeScreen() {
         <div className="flex-1 flex flex-col justify-center">
           <LogoMark size={60} className="mb-5 ff-float" />
           <div className="font-display text-7xl text-accentGreen leading-none">FITFLOW</div>
-          <p className="text-[19px] mt-3 font-medium">
-            Train <span className="text-accentGreen font-bold">SMART</span>. Move every day.
-          </p>
-          <p className="text-textMuted text-[15px] mt-2 max-w-[300px]">
-            Personalized workouts, smart progression, and nutrition — that adapt to you.
+          <p className="text-[22px] mt-3 font-semibold leading-snug">
+            Your AI personal trainer.<br />Train <span className="text-accentGreen">SMART</span>, move every day.
           </p>
 
-          <div className="mt-10 space-y-3">
-            {features.map((f) => (
-              <div key={f} className="flex items-center gap-3 text-[15px] text-white/90">
-                <span className="text-accentGreen shrink-0"><Icon name="check" size={18} /></span>{f}
+          <div className="mt-9 space-y-2.5">
+            {pillars.map((p) => (
+              <div key={p.text} className="flex items-center gap-3">
+                <span className="w-9 h-9 rounded-xl bg-accentGreen/15 text-accentGreen flex items-center justify-center shrink-0">
+                  <Icon name={p.icon} size={18} />
+                </span>
+                <span className="text-[14.5px] text-white/90 font-medium">{p.text}</span>
               </div>
             ))}
           </div>

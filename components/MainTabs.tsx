@@ -7,6 +7,7 @@ import ProgressScreen from "./ProgressScreen";
 import DietScreen from "./DietScreen";
 import ProfileScreen from "./ProfileScreen";
 import { Icon, type IconName } from "./icons";
+import Ambient from "./Ambient";
 
 type Tab = "home" | "progress" | "diet" | "profile";
 
@@ -27,15 +28,16 @@ export default function MainTabs() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-24">
+    <div className="relative min-h-screen flex flex-col">
+      <Ambient />
+      <div className="relative z-10 flex-1 overflow-y-auto no-scrollbar pb-24">
         {tab === "home" && <HomeScreen onStart={() => setTraining(true)} onProfile={() => setTab("profile")} />}
         {tab === "progress" && <ProgressScreen />}
         {tab === "diet" && <DietScreen />}
         {tab === "profile" && <ProfileScreen />}
       </div>
 
-      <nav className="fixed bottom-0 w-full max-w-[440px] bg-bgPhone/95 backdrop-blur border-t border-border">
+      <nav className="fixed bottom-0 w-full max-w-[440px] bg-bgPhone/95 backdrop-blur border-t border-border z-20">
         <div className="flex px-2 pb-[env(safe-area-inset-bottom)]">
           {TABS.map((t) => {
             const active = tab === t.id;
