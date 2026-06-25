@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { useApp } from "./AppState";
 import { SectionLabel } from "./ui";
 import { Icon, type IconName } from "./icons";
+import ExerciseDetail from "./ExerciseDetail";
+import { type Exercise } from "@/lib/models";
 import { workoutTargetedMuscles, exerciseCompletedSetCount } from "@/lib/models";
 import { muscleDisplayName } from "@/lib/muscle";
 import { SurveyCatalog, goalIcon } from "@/lib/surveyCatalog";
@@ -30,6 +32,7 @@ export default function HomeScreen({ onStart, onProfile, onLibrary }:
   { onStart: () => void; onProfile?: () => void; onLibrary?: () => void }) {
   const { user, currentWorkout, survey, setLogs, preferences, goToSurvey, setCurrentWorkout, saveTemplate } = useApp();
   const [toast, setToast] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Exercise | null>(null);
   if (!currentWorkout) return null;
 
   const muscles = workoutTargetedMuscles(currentWorkout).slice(0, 4).map((m) => muscleDisplayName[m]);
@@ -127,7 +130,7 @@ export default function HomeScreen({ onStart, onProfile, onLibrary }:
           const done = exerciseCompletedSetCount(ex);
           const fullyDone = done > 0 && done >= ex.sets.length;
           return (
-            <button key={ex.id} onClick={onStart}
+            <button key={ex.id} onClick={() => setDetail(ex)}
               className="w-full bg-bgCard border border-border rounded-2xl p-3.5 flex items-center gap-3.5 text-left transition active:scale-[0.99] hover:border-white/15">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-display text-lg shrink-0
                 ${fullyDone ? "bg-accentGreen text-deepGreen" : "bg-borderStrong text-textMuted"}`}>
@@ -159,6 +162,8 @@ export default function HomeScreen({ onStart, onProfile, onLibrary }:
           <Icon name="regenerate" size={15} /> Retake survey ({goalShort})
         </button>
       </div>
+
+      {detail && <ExerciseDetail exercise={detail} onClose={() => setDetail(null)} />}
 
       {toast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 bg-accentGreen text-deepGreen font-semibold text-[13px] rounded-full px-4 py-2 shadow-lg ff-pop">

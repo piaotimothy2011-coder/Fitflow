@@ -18,12 +18,16 @@ export function startSync(userId: string) {
   currentUserId = userId;
   setSyncPusher((key, value) => {
     if (!supabase || !currentUserId || SKIP_SYNC_KEYS.has(key)) return;
-    void supabase
+    supabase
       .from(TABLE)
       .upsert(
         { user_id: currentUserId, key, value, updated_at: nowIso() },
         { onConflict: "user_id,key" }
-      );
+      )
+      .then(({ error }) => {
+        if (error) console.warn("[FitFlow sync] cloud save failed:", error.message,
+          "\nDid you run supabase/schema.sql to create the user_data table?");
+      });
   });
 }
 
@@ -39,7 +43,12 @@ export async function pullAll(userId: string): Promise<number> {
     .from(TABLE)
     .select("key,value")
     .eq("user_id", userId);
-  if (error || !data) return 0;
+  if (error) {
+    console.warn("[FitFlow sync] cloud load failed:", error.message,
+      "\nDid you run supabase/schema.sql to create the user_data table?");
+    return 0;
+  }
+  if (!data) return 0;
   for (const row of data as { key: string; value: unknown }[]) {
     rawWrite(row.key, row.value);
   }

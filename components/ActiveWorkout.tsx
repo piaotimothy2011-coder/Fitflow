@@ -3,6 +3,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { useApp } from "./AppState";
 import { PrimaryButton, GhostButton } from "./ui";
 import { Icon } from "./icons";
+import ExerciseDetail from "./ExerciseDetail";
+import { type Exercise } from "@/lib/models";
 import {
   type Workout, type SetLog, type ExerciseSet, uuid, estimated1RM,
 } from "@/lib/models";
@@ -15,6 +17,7 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
   const [startedAt] = useState(Date.now());
   const [rest, setRest] = useState<number | null>(null);
   const [pr, setPr] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Exercise | null>(null);
   const pendingLogs = useRef<SetLog[]>([]);
   const priorLogs = useRef<SetLog[]>([...setLogs]);
   const unit = weightUnit(preferences.units);
@@ -102,9 +105,11 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
       <div className="flex-1 px-7 py-4 space-y-4">
         {w.exercises.map((ex) => (
           <div key={ex.id} className="bg-bgCard border border-border rounded-card p-4">
-            <div className="flex items-baseline justify-between">
-              <div className="text-white text-[16px] font-semibold">{ex.name}</div>
-              <div className="text-textFaint text-[12px]">{ex.detail}</div>
+            <div className="flex items-baseline justify-between gap-2">
+              <button onClick={() => setDetail(ex)} className="text-white text-[16px] font-semibold text-left flex items-center gap-1.5 active:opacity-70">
+                {ex.name}<span className="text-red-500"><Icon name="play" size={14} /></span>
+              </button>
+              <div className="text-textFaint text-[12px] shrink-0">{ex.detail}</div>
             </div>
             {ex.tip && <div className="text-textFaint text-[12px] mt-1 flex items-center gap-1.5"><span className="text-accentGreen shrink-0"><Icon name="bulb" size={14} /></span>{ex.tip}</div>}
 
@@ -118,11 +123,11 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
                   <input type="number" inputMode="decimal" value={s.weight || ""}
                     onChange={(e) => patchSet(ex.id, s.id, { weight: Number(e.target.value) })}
                     placeholder="0"
-                    className="rounded-lg bg-bgPhone border border-borderStrong px-3 py-2 text-[15px] outline-none focus:border-accentGreen" />
+                    className="w-full min-w-0 rounded-lg bg-bgPhone border border-borderStrong px-3 py-2 text-[15px] outline-none focus:border-accentGreen" />
                   <input type="number" inputMode="numeric" value={s.reps || ""}
                     onChange={(e) => patchSet(ex.id, s.id, { reps: Number(e.target.value) })}
                     placeholder="0"
-                    className="rounded-lg bg-bgPhone border border-borderStrong px-3 py-2 text-[15px] outline-none focus:border-accentGreen" />
+                    className="w-full min-w-0 rounded-lg bg-bgPhone border border-borderStrong px-3 py-2 text-[15px] outline-none focus:border-accentGreen" />
                   <button onClick={() => toggleComplete(ex.id, s.id)}
                     className={`h-9 rounded-lg flex items-center justify-center transition
                       ${s.isCompleted ? "bg-accentGreen text-deepGreen" : "bg-bgPhone border border-borderStrong text-textFaint"}`}>
@@ -138,6 +143,8 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
       <div className="px-7 py-4 space-y-3 sticky bottom-0 bg-bgPhone/95 backdrop-blur border-t border-border">
         <PrimaryButton onClick={finish}>Finish workout</PrimaryButton>
       </div>
+
+      {detail && <ExerciseDetail exercise={detail} onClose={() => setDetail(null)} />}
     </div>
   );
 }
