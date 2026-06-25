@@ -2,6 +2,7 @@
 import React, { useMemo, useState } from "react";
 import { useApp } from "./AppState";
 import { Card, ProgressBar, PrimaryButton, GhostButton } from "./ui";
+import { Icon } from "./icons";
 import {
   type MealEntry, type MealSlot, MEAL_SLOTS, mealSlotLabel, mealTotalMacros,
   addMacros, zeroMacros, uuid,
@@ -16,6 +17,7 @@ export default function DietScreen() {
   const [adding, setAdding] = useState<MealSlot | null>(null);
 
   const targets = useMemo(() => targetsForSurvey(survey), [survey]);
+  const mealsPerDay = survey.mealsPerDay || 3;
   const today = new Date().toDateString();
   const todayMeals = meals.filter((m) => new Date(m.date).toDateString() === today);
   const consumed = todayMeals.map(mealTotalMacros).reduce(addMacros, zeroMacros());
@@ -45,6 +47,9 @@ export default function DietScreen() {
           <span className="font-display text-3xl text-white">{consumed.calories}<span className="text-textFaint text-lg"> / {targets.calories}</span></span>
         </div>
         <ProgressBar value={targets.calories ? consumed.calories / targets.calories : 0} />
+        <div className="text-textFaint text-[12px] mt-2">
+          ≈ {Math.round(targets.calories / mealsPerDay)} kcal × {mealsPerDay} meals · {survey.days} active {survey.days === 1 ? "day" : "days"}/week
+        </div>
         <div className="flex gap-4 mt-4">
           <Ring label="Protein" value={consumed.proteinG} goal={targets.proteinG} unit="g" color="#4ADE80" />
           <Ring label="Carbs" value={consumed.carbsG} goal={targets.carbsG} unit="g" color="#60A5FA" />
@@ -54,7 +59,7 @@ export default function DietScreen() {
 
       <Card className="p-5 mb-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-textFaint text-[13px]">Water</span>
+          <span className="text-textFaint text-[13px] flex items-center gap-1.5"><span className="text-[#38BDF8]"><Icon name="water" size={15} /></span>Water</span>
           <span className="font-display text-2xl text-white">{todayWater}<span className="text-textFaint text-base"> / {targets.waterOz} oz</span></span>
         </div>
         <ProgressBar value={targets.waterOz ? todayWater / targets.waterOz : 0} color="#38BDF8" />
@@ -70,7 +75,7 @@ export default function DietScreen() {
           <div key={slot} className="mb-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-white text-[15px] font-medium">{mealSlotLabel(slot)}</span>
-              <button onClick={() => setAdding(slot)} className="text-accentGreen text-[13px]">+ Add</button>
+              <button onClick={() => setAdding(slot)} className="text-accentGreen text-[13px] inline-flex items-center gap-1"><Icon name="plus" size={14} /> Add</button>
             </div>
             {slotMeals.length === 0 ? (
               <div className="text-textFaint text-[13px]">Nothing logged.</div>
@@ -84,7 +89,7 @@ export default function DietScreen() {
                         <div className="text-white text-[14px] truncate">{m.name}</div>
                         <div className="text-textFaint text-[12px]">{tm.calories} kcal · P{Math.round(tm.proteinG)} C{Math.round(tm.carbsG)} F{Math.round(tm.fatG)}</div>
                       </div>
-                      <button onClick={() => deleteMeal(m.id)} className="text-textFaint text-[18px] px-2">×</button>
+                      <button onClick={() => deleteMeal(m.id)} className="text-textFaint hover:text-white transition px-2"><Icon name="close" size={16} /></button>
                     </Card>
                   );
                 })}
@@ -94,7 +99,7 @@ export default function DietScreen() {
         );
       })}
 
-      <div className="text-textFaint text-[13px] mb-2 mt-6">Suggested recipes</div>
+      <div className="text-textFaint text-[12px] font-semibold uppercase tracking-wider mb-2.5 mt-7">Suggested recipes</div>
       <div className="space-y-2 mb-6">
         {recipes.slice(0, 5).map((r) => (
           <Card key={r.id} className="p-3 flex items-center justify-between">
@@ -112,7 +117,7 @@ export default function DietScreen() {
         ))}
       </div>
 
-      <div className="text-textFaint text-[13px] mb-2">Meal plans for your goal</div>
+      <div className="text-textFaint text-[12px] font-semibold uppercase tracking-wider mb-2.5">Meal plans for your goal</div>
       <div className="space-y-2 mb-6">
         {plans.map((p) => (
           <Card key={p.id} className="p-4">

@@ -5,11 +5,5 @@
     </linearGradient>
   </defs>
   <rect width="96" height="96" rx="24" fill="url(#g)"/>
-  <g fill="#052E16">
-    <rect x="24" y="52" width="10" height="20" rx="5"/>
-    <rect x="43" y="42" width="10" height="30" rx="5"/>
-    <rect x="62" y="30" width="10" height="42" rx="5"/>
-  </g>
-  <path d="M18 62 C 30 54, 40 48, 48 43 S 64 30, 78 20" stroke="#0A0A0A" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-  <circle cx="78" cy="20" r="6" fill="#0A0A0A"/>
+  <g transform="translate(16,16) scale(2.7)"><path d="M13 2L5 13h5l-1.5 9L19 10h-5.5z" fill="#052E16"/></g>
 </svg>

@@ -2,17 +2,14 @@
 import React from "react";
 
 // Flat, solid green icon system for FitFlow.
-// All icons inherit `currentColor`, so they turn green on dark surfaces
-// (text-accentGreen) and dark on green surfaces (selected chips / buttons).
+// All icons inherit `currentColor`.
 
 export type IconName =
-  // goals
   | "flame" | "muscle" | "endurance" | "strength" | "flexibility"
   | "calm" | "athletic" | "active" | "posture"
-  // tabs
   | "today" | "progress" | "diet" | "profile"
-  // utility
-  | "water" | "clock" | "check" | "plus" | "spark" | "dumbbell";
+  | "water" | "clock" | "check" | "plus" | "spark" | "dumbbell"
+  | "bolt" | "bulb" | "trophy" | "close" | "play" | "leaf" | "back";
 
 const STROKE = {
   fill: "none",
@@ -22,11 +19,15 @@ const STROKE = {
   strokeLinejoin: "round" as const,
 };
 
+// Shared lightning-bolt glyph (used for "athletic" + brand logo).
+const BOLT_D = "M13 2L5 13h5l-1.5 9L19 10h-5.5z";
+
 function paths(name: IconName): React.ReactNode {
   switch (name) {
     case "flame":
       return <path d="M12 2c.4 3.1 3 4.6 3 8.2a3 3 0 1 1-6 0c0-1 .3-1.9.9-2.6C8 8.9 7 11.1 7 13.6a5 5 0 1 0 10 0C17 8.6 13.6 5.2 12 2z" />;
-    case "muscle": // dumbbell
+    case "muscle":
+    case "dumbbell":
       return (
         <g>
           <rect x="2" y="9" width="3" height="6" rx="1.2" />
@@ -36,9 +37,9 @@ function paths(name: IconName): React.ReactNode {
           <rect x="19" y="9" width="3" height="6" rx="1.2" />
         </g>
       );
-    case "endurance": // heartbeat
+    case "endurance":
       return <path {...STROKE} d="M2 12h4l2-5 3 11 2.4-7 1.6 1H22" />;
-    case "strength": // barbell
+    case "strength":
       return (
         <g>
           <rect x="2" y="8" width="2" height="8" rx="1" />
@@ -48,13 +49,15 @@ function paths(name: IconName): React.ReactNode {
           <rect x="20" y="8" width="2" height="8" rx="1" />
         </g>
       );
-    case "flexibility": // flowing S curve
+    case "flexibility":
       return <path {...STROKE} strokeWidth={2.4} d="M5 4c4 0 4 6 7 8s4 8 7 8" />;
-    case "calm": // leaf
+    case "calm":
+    case "leaf":
       return <path d="M5 19c-1-7 3-13 14-14 1 11-5 16-12 15l3-7 4-2-5 1z" />;
-    case "athletic": // lightning bolt
-      return <path d="M13 2L4 14h6l-1 8 9-12h-6z" />;
-    case "active": // footprints
+    case "athletic":
+    case "bolt":
+      return <path d={BOLT_D} />;
+    case "active":
       return (
         <g>
           <path d="M8 4c1.6 0 2.5 1.8 2.5 4S9.6 12 8 12 5.5 10.2 5.5 8 6.4 4 8 4z" />
@@ -63,16 +66,16 @@ function paths(name: IconName): React.ReactNode {
           <path d="M15 17c1.4 0 2 .9 2 2.2 0 1.5-.6 2.8-2 2.8s-2-1.3-2-2.8c0-1.3.6-2.2 2-2.2z" />
         </g>
       );
-    case "posture": // spine
+    case "posture":
       return (
         <g {...STROKE} strokeWidth={2.2}>
           <path d="M12 3c-1.6 2.2-1.6 4 0 6s1.6 4 0 6 -1.6 4 0 6" />
           <path d="M11 5.5h3M10.5 9h3M10.5 12.5h3M11 16h3M11.5 19h3" />
         </g>
       );
-    case "today": // home
+    case "today":
       return <path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />;
-    case "progress": // bars
+    case "progress":
       return (
         <g>
           <rect x="3" y="12" width="4" height="8" rx="1.2" />
@@ -80,7 +83,7 @@ function paths(name: IconName): React.ReactNode {
           <rect x="17" y="3" width="4" height="17" rx="1.2" />
         </g>
       );
-    case "diet": // apple
+    case "diet":
       return (
         <g>
           <path d="M12 6.2c-1.6-1.1-4.2-1-5.7.6C4.8 8.4 4.9 11.4 6 14.4c.8 2.2 2.1 4 3.4 4 .9 0 1.3-.5 2.6-.5s1.7.5 2.6.5c1.3 0 2.6-1.8 3.4-4 1.1-3 1.2-6-.3-7.6-1.5-1.6-4.1-1.7-5.7-.6z" />
@@ -105,32 +108,45 @@ function paths(name: IconName): React.ReactNode {
       );
     case "check":
       return <path {...STROKE} strokeWidth={2.6} d="M5 12.5 10 17 19 7" />;
+    case "close":
+      return <path {...STROKE} strokeWidth={2.4} d="M6 6l12 12M18 6 6 18" />;
+    case "back":
+      return <path {...STROKE} strokeWidth={2.4} d="M15 5l-7 7 7 7" />;
     case "plus":
       return <path {...STROKE} strokeWidth={2.6} d="M12 5v14M5 12h14" />;
+    case "play":
+      return <path d="M7 5l12 7-12 7z" />;
     case "spark":
       return <path d="M12 2l2.2 6.4L21 11l-6.8 2.6L12 20l-2.2-6.4L3 11l6.8-2.6z" />;
-    case "dumbbell":
-      return paths("muscle");
+    case "bulb":
+      return (
+        <g>
+          <path d="M9.5 18.5h5v1A2.5 2.5 0 0 1 12 22a2.5 2.5 0 0 1-2.5-2.5z" />
+          <path d="M12 2a7 7 0 0 0-4.2 12.6c.7.5 1.2 1.2 1.2 2v.4h6v-.4c0-.8.5-1.5 1.2-2A7 7 0 0 0 12 2z" />
+        </g>
+      );
+    case "trophy":
+      return (
+        <g>
+          <path d="M7 3h10v5a5 5 0 0 1-10 0z" />
+          <rect x="11" y="12.5" width="2" height="4" />
+          <rect x="8" y="20" width="8" height="2.2" rx="1.1" />
+          <rect x="9.3" y="16" width="5.4" height="4.2" rx="1.2" />
+          <path {...STROKE} strokeWidth={1.8} d="M7 5H4.5v1.5A2.5 2.5 0 0 0 7 9M17 5h2.5v1.5A2.5 2.5 0 0 1 17 9" />
+        </g>
+      );
   }
 }
 
 export function Icon({ name, className = "", size = 22 }: { name: IconName; className?: string; size?: number }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      className={className}
-      fill="currentColor"
-      aria-hidden="true"
-      focusable="false"
-    >
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} fill="currentColor" aria-hidden="true" focusable="false">
       {paths(name)}
     </svg>
   );
 }
 
-// Brand logo mark: green gradient badge with a dark "rising progress" glyph.
+// Brand logo: green-gradient badge with a dark lightning bolt (strength).
 export function LogoMark({ size = 56, className = "" }: { size?: number; className?: string }) {
   const id = React.useId();
   return (
@@ -142,13 +158,9 @@ export function LogoMark({ size = 56, className = "" }: { size?: number; classNa
         </linearGradient>
       </defs>
       <rect width="96" height="96" rx="24" fill={`url(#${id})`} />
-      <g fill="#052E16">
-        <rect x="24" y="52" width="10" height="20" rx="5" />
-        <rect x="43" y="42" width="10" height="30" rx="5" />
-        <rect x="62" y="30" width="10" height="42" rx="5" />
+      <g transform="translate(16,16) scale(2.7)">
+        <path d={BOLT_D} fill="#052E16" />
       </g>
-      <path d="M18 62 C 30 54, 40 48, 48 43 S 64 30, 78 20" stroke="#0A0A0A" strokeWidth="5.5" strokeLinecap="round" fill="none" />
-      <circle cx="78" cy="20" r="6" fill="#0A0A0A" />
     </svg>
   );
 }

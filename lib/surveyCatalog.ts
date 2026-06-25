@@ -17,17 +17,6 @@ export const SurveyCatalog = {
     "Stay active": "Stay active",
     "Posture and rehab": "Posture rehab",
   } as Record<string, string>,
-  goalEmoji: {
-    "Lose weight": "🔥",
-    "Build muscle": "💪",
-    "Improve endurance": "🏃",
-    "Increase strength": "🏋️",
-    "Improve flexibility": "🧘",
-    "Reduce stress": "🧠",
-    "Athletic performance": "🏅",
-    "Stay active": "🚶",
-    "Posture and rehab": "🩹",
-  } as Record<string, string>,
   levels: ["Complete beginner", "Beginner", "Intermediate", "Advanced", "Athlete"],
   levelLabels: {
     "Complete beginner": "Complete beginner — I rarely exercise",

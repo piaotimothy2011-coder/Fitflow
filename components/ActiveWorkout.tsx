@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useApp } from "./AppState";
 import { PrimaryButton, GhostButton } from "./ui";
+import { Icon } from "./icons";
 import {
   type Workout, type SetLog, type ExerciseSet, uuid, estimated1RM,
 } from "@/lib/models";
@@ -78,7 +79,7 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
     <div className="min-h-screen flex flex-col">
       <div className="px-7 pt-8 pb-4 sticky top-0 bg-bgPhone/95 backdrop-blur z-10 border-b border-border">
         <div className="flex items-center justify-between">
-          <button onClick={cancel} className="text-textFaint text-[14px]">← Exit</button>
+          <button onClick={cancel} className="text-textMuted hover:text-white transition text-[14px] flex items-center gap-1"><Icon name="back" size={17} /> Exit</button>
           <span className="text-textFaint text-[13px]">{doneSets}/{totalSets} sets</span>
         </div>
         <div className="font-display text-4xl text-white leading-none mt-2">{w.workoutName}</div>
@@ -94,7 +95,7 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
 
       {pr && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-30 bg-white text-deepGreen rounded-full px-5 py-2.5 font-semibold shadow-lg ff-pop text-[14px]">
-          🎉 {pr}
+          <span className="inline-flex items-center gap-1.5"><Icon name="trophy" size={16} /> {pr}</span>
         </div>
       )}
 
@@ -105,7 +106,7 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
               <div className="text-white text-[16px] font-semibold">{ex.name}</div>
               <div className="text-textFaint text-[12px]">{ex.detail}</div>
             </div>
-            {ex.tip && <div className="text-textFaint text-[12px] mt-0.5">💡 {ex.tip}</div>}
+            {ex.tip && <div className="text-textFaint text-[12px] mt-1 flex items-center gap-1.5"><span className="text-accentGreen shrink-0"><Icon name="bulb" size={14} /></span>{ex.tip}</div>}
 
             <div className="mt-3 grid grid-cols-[28px_1fr_1fr_44px] gap-2 items-center text-[11px] text-textFaint uppercase tracking-wide">
               <span>Set</span><span>Weight ({unit})</span><span>Reps</span><span></span>
@@ -125,7 +126,7 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
                   <button onClick={() => toggleComplete(ex.id, s.id)}
                     className={`h-9 rounded-lg flex items-center justify-center transition
                       ${s.isCompleted ? "bg-accentGreen text-deepGreen" : "bg-bgPhone border border-borderStrong text-textFaint"}`}>
-                    ✓
+                    <Icon name="check" size={16} />
                   </button>
                 </div>
               ))}
