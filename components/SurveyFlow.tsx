@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { useApp } from "./AppState";
 import { PrimaryButton, GhostButton, Chip, ProgressBar } from "./ui";
-import { SurveyCatalog } from "@/lib/surveyCatalog";
+import { SurveyCatalog, goalIcon } from "@/lib/surveyCatalog";
+import { Icon } from "./icons";
 import { type Survey, type BiologicalSex } from "@/lib/models";
 import { buildWorkout, buildSmartPlan } from "@/lib/workoutGenerator";
 import { applyProgression } from "@/lib/progressionEngine";
@@ -44,9 +45,12 @@ export default function SurveyFlow() {
 
   if (building) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-7">
-        <div className="font-display text-5xl text-accentGreen animate-pulse">BUILDING YOUR PLAN</div>
-        <p className="text-textMuted mt-3 text-center">Matching exercises to your goal, equipment and recovery…</p>
+      <div className="min-h-screen flex flex-col items-center justify-center px-7 text-center">
+        <div className="animate-pulse text-accentGreen mb-5">
+          <Icon name="spark" size={56} />
+        </div>
+        <div className="font-display text-5xl text-accentGreen leading-none">BUILDING YOUR PLAN</div>
+        <p className="text-textMuted mt-3 max-w-[280px]">Matching exercises to your goal, equipment and recovery…</p>
       </div>
     );
   }
@@ -66,7 +70,13 @@ export default function SurveyFlow() {
           <Section title="What's your main goal?" subtitle="We'll build your plan around this.">
             <div className="grid grid-cols-1 gap-2.5">
               {SurveyCatalog.goals.map((g) => (
-                <Chip key={g} label={`${SurveyCatalog.goalEmoji[g] ?? ""}  ${g}`} selected={draft.goal === g} onClick={() => update({ goal: g })} />
+                <Chip
+                  key={g}
+                  icon={<Icon name={goalIcon[g] ?? "spark"} size={22} />}
+                  label={g}
+                  selected={draft.goal === g}
+                  onClick={() => update({ goal: g })}
+                />
               ))}
             </div>
           </Section>

@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "FitFlow",
-  description: "Personalized workouts, tracking, and nutrition — web edition.",
+  description: "Train SMART. Move every day. Personalized workouts, progression, and nutrition.",
 };
 
 export const viewport: Viewport = {

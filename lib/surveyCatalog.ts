@@ -1,3 +1,4 @@
+import type { IconName } from "@/components/icons";
 // Survey catalogue — ported from Models/Survey.swift (SurveyCatalog)
 export const SurveyCatalog = {
   goals: [
@@ -50,4 +51,17 @@ export const SurveyCatalog = {
     "Dairy-free", "Gluten-free", "Nut-free", "Soy-free", "Egg-free",
     "Shellfish-free", "Low sodium", "Low sugar", "No restrictions",
   ],
+};
+
+// Flat-green icon name for each goal (see components/icons.tsx).
+export const goalIcon: Record<string, IconName> = {
+  "Lose weight": "flame",
+  "Build muscle": "muscle",
+  "Improve endurance": "endurance",
+  "Increase strength": "strength",
+  "Improve flexibility": "flexibility",
+  "Reduce stress": "calm",
+  "Athletic performance": "athletic",
+  "Stay active": "active",
+  "Posture and rehab": "posture",
 };

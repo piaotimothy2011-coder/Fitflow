@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useApp } from "./AppState";
 import { PrimaryButton, GhostButton } from "./ui";
+import { Icon, LogoMark } from "./icons";
 
 export default function WelcomeScreen() {
   const { signUp, signUpEmail, signInEmail, cloudEnabled } = useApp();
@@ -43,15 +44,19 @@ export default function WelcomeScreen() {
   return (
     <div className="min-h-screen flex flex-col px-7 py-10">
       <div className="flex-1 flex flex-col justify-center">
+        <LogoMark size={60} className="mb-5" />
         <div className="font-display text-7xl text-accentGreen leading-none">FITFLOW</div>
-        <p className="text-textMuted text-[17px] mt-4 max-w-[300px]">
+        <p className="text-[19px] mt-3 font-medium">
+          Train <span className="text-accentGreen font-bold">SMART</span>. Move every day.
+        </p>
+        <p className="text-textMuted text-[15px] mt-2 max-w-[300px]">
           Personalized workouts, smart progression, and nutrition — that adapt to you.
         </p>
 
         <div className="mt-10 space-y-3">
           {features.map((f) => (
             <div key={f} className="flex items-center gap-3 text-[15px] text-white/90">
-              <span className="text-accentGreen">●</span>{f}
+              <span className="text-accentGreen shrink-0"><Icon name="check" size={18} /></span>{f}
             </div>
           ))}
         </div>

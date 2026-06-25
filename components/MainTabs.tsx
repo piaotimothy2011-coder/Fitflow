@@ -6,14 +6,15 @@ import ActiveWorkout from "./ActiveWorkout";
 import ProgressScreen from "./ProgressScreen";
 import DietScreen from "./DietScreen";
 import ProfileScreen from "./ProfileScreen";
+import { Icon, type IconName } from "./icons";
 
 type Tab = "home" | "progress" | "diet" | "profile";
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "home", label: "Today", icon: "🏋️" },
-  { id: "progress", label: "Progress", icon: "📈" },
-  { id: "diet", label: "Diet", icon: "🥗" },
-  { id: "profile", label: "Profile", icon: "👤" },
+const TABS: { id: Tab; label: string; icon: IconName }[] = [
+  { id: "home", label: "Today", icon: "today" },
+  { id: "progress", label: "Progress", icon: "progress" },
+  { id: "diet", label: "Diet", icon: "diet" },
+  { id: "profile", label: "Profile", icon: "profile" },
 ];
 
 export default function MainTabs() {
@@ -35,15 +36,24 @@ export default function MainTabs() {
       </div>
 
       <nav className="fixed bottom-0 w-full max-w-[440px] bg-bgPhone/95 backdrop-blur border-t border-border">
-        <div className="flex">
-          {TABS.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 flex flex-col items-center gap-1 py-3 text-[11px] transition
-                ${tab === t.id ? "text-accentGreen" : "text-textFaint"}`}>
-              <span className="text-lg">{t.icon}</span>
-              {t.label}
-            </button>
-          ))}
+        <div className="flex px-2 pb-[env(safe-area-inset-bottom)]">
+          {TABS.map((t) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition
+                  ${active ? "text-accentGreen" : "text-textFaint hover:text-textMuted"}`}
+              >
+                <span className={`flex items-center justify-center w-11 h-7 rounded-full transition
+                  ${active ? "bg-accentGreen/15" : "bg-transparent"}`}>
+                  <Icon name={t.icon} size={21} />
+                </span>
+                {t.label}
+              </button>
+            );
+          })}
         </div>
       </nav>
     </div>
