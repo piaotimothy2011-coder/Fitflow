@@ -1,0 +1,50 @@
+// Curated YouTube tutorial video IDs per catalog exercise.
+// Exercises with an ID embed an in-app player; the rest fall back to a
+// "Watch on YouTube" search link in the detail screen.
+export const EXERCISE_VIDEOS: Record<string, string> = {
+  "Bodyweight Squat": "P-yaD24bUE8",
+  "Push-up": "IODxDxX7oi4",
+  "Knee Push-up": "IODxDxX7oi4",
+  "Glute Bridge": "Q_Bpj91Yiis",
+  "Plank": "A2b2EmIg0dA",
+  "Mountain Climbers": "cnyTQDSE884",
+  "Burpees": "G2hv_NYhM-A",
+  "Reverse Lunges": "u_zSfK5ZFU4",
+  "Jump Squats": "tZSYZdtbONc",
+  "Wall Sit": "JaZNYM3zAP0",
+  "Bird Dog": "ZdAHe9_HeEw",
+  "Dead Bug": "bxn9FBrt4-A",
+  "Goblet Squat": "Xjo_fY9Hl9w",
+  "Dumbbell Press": "pKZMNVbfUzQ",
+  "Dumbbell Row": "gfUg6qWohTk",
+  "Dumbbell Romanian Deadlift": "hQgFixeXdZo",
+  "Dumbbell Shoulder Press": "qEwKCR5JCog",
+  "Dumbbell Lateral Raise": "pgrWjBfaFe8",
+  "Dumbbell Biceps Curl": "XE_pHwbst04",
+  "Dumbbell Walking Lunges": "I34ysEkPK7w",
+  "Back Squat": "8PMjqgR8Wa8",
+  "Deadlift": "NVpwlMFrB3I",
+  "Bench Press": "gRVjAtPip0Y",
+  "Overhead Press": "F3QY5vMz_6I",
+  "Barbell Row": "ZtTwgJTBjOQ",
+  "Pull-up": "m7NhuSXiQIs",
+  "Hanging Knee Raise": "l7OroezzX9k",
+  "Dead Hang": "3CEmHJXbNpc",
+  "Kettlebell Swing": "sSESeQAir2M",
+  "Kettlebell Goblet Carry": "JgiEIPi7g7Y",
+  "Band Pull-Apart": "WqdNDTTe-9g",
+  "Band Row": "LSkyinhmA8k",
+  "Band Pallof Press": "Y0e2w0aKOXw",
+  "Cable Lat Pulldown": "yJ85obQYHx8",
+  "Cable Row": "7BkgqzC6WsM",
+  "Cable Triceps Pressdown": "odbyvJm7d8s",
+  "Jump Rope": "nMHfZ-yrFjA",
+  "High Knees": "D0GwAezTvtg",
+  "Box Jumps": "G-bxQY57mKc",
+  "Cat-Cow Flow": "Fa4ZMS5M7xA",
+  "Box Breathing": "tEmt1Znux58",
+};
+
+export function videoIdFor(name: string): string | null {
+  return EXERCISE_VIDEOS[name] ?? null;
+}
