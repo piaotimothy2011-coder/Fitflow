@@ -5,6 +5,7 @@ import WelcomeScreen from "./WelcomeScreen";
 import SurveyFlow from "./SurveyFlow";
 import MainTabs from "./MainTabs";
 import { LogoMark } from "./icons";
+import InstallPrompt from "./InstallPrompt";
 
 function Shell() {
   const { hydrated, route } = useApp();
@@ -33,6 +34,7 @@ export default function FitFlowApp() {
   return (
     <AppStateProvider>
       <Shell />
+      <InstallPrompt />
     </AppStateProvider>
   );
 }

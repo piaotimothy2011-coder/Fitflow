@@ -9,7 +9,8 @@ export type IconName =
   | "calm" | "athletic" | "active" | "posture"
   | "today" | "progress" | "diet" | "profile"
   | "water" | "clock" | "check" | "plus" | "spark" | "dumbbell"
-  | "bolt" | "bulb" | "trophy" | "close" | "play" | "leaf" | "back";
+  | "bolt" | "bulb" | "trophy" | "close" | "play" | "leaf" | "back"
+  | "scale" | "medal";
 
 const STROKE = {
   fill: "none",
@@ -49,14 +50,37 @@ function paths(name: IconName): React.ReactNode {
           <rect x="20" y="8" width="2" height="8" rx="1" />
         </g>
       );
-    case "flexibility":
-      return <path {...STROKE} strokeWidth={2.4} d="M5 4c4 0 4 6 7 8s4 8 7 8" />;
-    case "calm":
+    case "flexibility": // person bending into a stretch
+      return (
+        <g>
+          <circle cx="7.4" cy="6" r="2.2" />
+          <g {...STROKE} strokeWidth={2.3}>
+            <path d="M8.6 7.6C11 10 13 12 15 13.6" />
+            <path d="M15 13.6L14 20M15 13.6L17 20" />
+            <path d="M11 10.2C12.5 13 14 15 15.6 16.6" />
+          </g>
+        </g>
+      );
+    case "calm": // seated meditation figure
+      return (
+        <g>
+          <circle cx="12" cy="5.4" r="2.4" />
+          <path d="M12 8.4c-2 0-3.3 1.5-3.3 3.6 0 .9.3 1.7.8 2.3-2 .3-3.6 1.3-4.4 2.5-.4.6 0 1.4.8 1.4h12.2c.8 0 1.2-.8.8-1.4-.8-1.2-2.4-2.2-4.4-2.5.5-.6.8-1.4.8-2.3 0-2.1-1.3-3.6-3.3-3.6z" />
+        </g>
+      );
     case "leaf":
       return <path d="M5 19c-1-7 3-13 14-14 1 11-5 16-12 15l3-7 4-2-5 1z" />;
-    case "athletic":
     case "bolt":
       return <path d={BOLT_D} />;
+    case "athletic":
+    case "medal":
+      return (
+        <g {...STROKE} strokeLinejoin="round">
+          <path d="M8.5 2 10.6 8M15.5 2 13.4 8" />
+          <circle cx="12" cy="15" r="6" />
+          <path d="M12 12l1 2.1 2.3.2-1.7 1.5.5 2.2L12 16.8 9.9 18l.5-2.2L8.7 14.3l2.3-.2z" strokeWidth={1.3} />
+        </g>
+      );
     case "active":
       return (
         <g>
@@ -99,6 +123,14 @@ function paths(name: IconName): React.ReactNode {
       );
     case "water":
       return <path d="M12 3c3.9 4.9 6 8 6 11a6 6 0 0 1-12 0c0-3 2.1-6.1 6-11z" />;
+    case "scale": // bathroom scale = lose weight
+      return (
+        <g {...STROKE}>
+          <rect x="3" y="4" width="18" height="17" rx="3" />
+          <path d="M8 9.6a4.6 4.6 0 0 1 8 0" />
+          <path d="M12 9.6l1.7 1.5" />
+        </g>
+      );
     case "clock":
       return (
         <g {...STROKE}>

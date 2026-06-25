@@ -29,7 +29,7 @@ export default function MainTabs() {
   return (
     <div className="min-h-screen flex flex-col">
       <div className="flex-1 overflow-y-auto no-scrollbar pb-24">
-        {tab === "home" && <HomeScreen onStart={() => setTraining(true)} />}
+        {tab === "home" && <HomeScreen onStart={() => setTraining(true)} onProfile={() => setTab("profile")} />}
         {tab === "progress" && <ProgressScreen />}
         {tab === "diet" && <DietScreen />}
         {tab === "profile" && <ProfileScreen />}

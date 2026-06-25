@@ -4,7 +4,7 @@ export const SurveyCatalog = {
   goals: [
     "Lose weight", "Build muscle", "Improve endurance", "Increase strength",
     "Improve flexibility", "Reduce stress", "Athletic performance",
-    "Stay active", "Posture and rehab",
+    "Posture and rehab",
   ],
   goalShortLabels: {
     "Lose weight": "Lose weight",
@@ -14,7 +14,6 @@ export const SurveyCatalog = {
     "Improve flexibility": "Flexibility",
     "Reduce stress": "Reduce stress",
     "Athletic performance": "Performance",
-    "Stay active": "Stay active",
     "Posture and rehab": "Posture rehab",
   } as Record<string, string>,
   levels: ["Complete beginner", "Beginner", "Intermediate", "Advanced", "Athlete"],
@@ -44,13 +43,12 @@ export const SurveyCatalog = {
 
 // Flat-green icon name for each goal (see components/icons.tsx).
 export const goalIcon: Record<string, IconName> = {
-  "Lose weight": "flame",
+  "Lose weight": "scale",
   "Build muscle": "muscle",
   "Improve endurance": "endurance",
   "Increase strength": "strength",
   "Improve flexibility": "flexibility",
   "Reduce stress": "calm",
   "Athletic performance": "athletic",
-  "Stay active": "active",
   "Posture and rehab": "posture",
 };
