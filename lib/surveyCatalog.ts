@@ -43,7 +43,7 @@ export const SurveyCatalog = {
 
 // Flat-green icon name for each goal (see components/icons.tsx).
 export const goalIcon: Record<string, IconName> = {
-  "Lose weight": "scale",
+  "Lose weight": "flame",
   "Build muscle": "muscle",
   "Improve endurance": "endurance",
   "Increase strength": "strength",

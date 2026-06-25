@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useApp } from "./AppState";
 import { PrimaryButton, GhostButton } from "./ui";
-import { Icon, LogoMark } from "./icons";
+import { LogoMark } from "./icons";
 
 function Background() {
   const particles = [
@@ -51,13 +51,6 @@ export default function WelcomeScreen() {
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const pillars: { icon: "strength" | "spark" | "flame" | "diet"; text: string }[] = [
-    { icon: "strength", text: "Custom plan from a 60-second quiz" },
-    { icon: "spark", text: "Weights auto-progress every session" },
-    { icon: "flame", text: "Recovery-aware — trains fresh muscles" },
-    { icon: "diet", text: "Macros, water & PRs in one place" },
-  ];
-
   async function handleCloudSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null); setInfo(null); setBusy(true);
@@ -84,20 +77,13 @@ export default function WelcomeScreen() {
         <div className="flex-1 flex flex-col justify-center">
           <LogoMark size={60} className="mb-5 ff-float" />
           <div className="font-display text-7xl text-accentGreen leading-none">FITFLOW</div>
-          <p className="text-[22px] mt-3 font-semibold leading-snug">
-            Your AI personal trainer.<br />Train <span className="text-accentGreen">SMART</span>, move every day.
+          <p className="text-accentGreen text-[14px] font-bold uppercase tracking-[0.2em] mt-4">Your AI personal trainer</p>
+          <h1 className="font-display text-[60px] leading-[0.92] text-white mt-3">
+            BUILD MUSCLE.<br /><span className="text-accentGreen">LOSE FAT.</span><br />TRAIN SMARTER.
+          </h1>
+          <p className="text-textMuted text-[15px] mt-5 max-w-[310px] leading-snug">
+            Answer a few questions — get a plan that builds and progresses itself.
           </p>
-
-          <div className="mt-9 space-y-2.5">
-            {pillars.map((p) => (
-              <div key={p.text} className="flex items-center gap-3">
-                <span className="w-9 h-9 rounded-xl bg-accentGreen/15 text-accentGreen flex items-center justify-center shrink-0">
-                  <Icon name={p.icon} size={18} />
-                </span>
-                <span className="text-[14.5px] text-white/90 font-medium">{p.text}</span>
-              </div>
-            ))}
-          </div>
         </div>
 
         {cloudEnabled ? (
