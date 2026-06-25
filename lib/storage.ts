@@ -1,4 +1,7 @@
-// localStorage persistence — mirrors Services/StorageService.swift (same "ff.*" keys)
+// localStorage persistence + optional cloud-sync hook.
+// localStorage is the synchronous source of truth for the UI; when a sync
+// pusher is registered (after Supabase sign-in), every write is also mirrored
+// up to the cloud. With no pusher registered the app is pure-local as before.
 import {
   type Survey, type Workout, type WorkoutLog, type User, type UserPreferences,
   type MealEntry, type WaterEntry, type SetLog, type WorkoutTemplate,
@@ -18,7 +21,19 @@ const KEYS = {
   auth: "ff.isAuthenticated",
 } as const;
 
+// All keys that participate in cloud sync.
+export const SYNC_KEYS: string[] = Object.values(KEYS);
+// Device-local keys that must NOT be synced to the cloud.
+export const SKIP_SYNC_KEYS: Set<string> = new Set([KEYS.auth]);
+
 const isBrowser = typeof window !== "undefined";
+
+// ---- cloud-sync pusher (registered by lib/sync) ----
+type Pusher = (key: string, value: unknown) => void;
+let pusher: Pusher | null = null;
+export function setSyncPusher(p: Pusher | null) {
+  pusher = p;
+}
 
 function read<T>(key: string, fallback: T): T {
   if (!isBrowser) return fallback;
@@ -29,13 +44,25 @@ function read<T>(key: string, fallback: T): T {
     return fallback;
   }
 }
-function write(key: string, value: unknown) {
+
+// Local-only write (no cloud push). Used by the pull path.
+export function rawWrite(key: string, value: unknown) {
   if (!isBrowser) return;
   try {
     if (value == null) window.localStorage.removeItem(key);
     else window.localStorage.setItem(key, JSON.stringify(value));
   } catch {
     /* quota / serialization — ignore */
+  }
+}
+
+// Write-through: local first, then mirror up to the cloud if syncing.
+function write(key: string, value: unknown) {
+  rawWrite(key, value);
+  try {
+    pusher?.(key, value);
+  } catch {
+    /* never let a sync error break a local write */
   }
 }
 

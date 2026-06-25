@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import {
   type Survey, type Workout, type WorkoutLog, type User, type UserPreferences,
   type MealEntry, type WaterEntry, type SetLog, type WorkoutTemplate,
@@ -7,11 +7,19 @@ import {
   exerciseCompletedSetCount,
 } from "@/lib/models";
 import { Storage } from "@/lib/storage";
+import { supabase, supabaseEnabled } from "@/lib/supabase";
+import { startSync, stopSync, pullAll, pushAllLocal } from "@/lib/sync";
 
 export type Route = "welcome" | "survey" | "main";
 
+export interface AuthResult {
+  error?: string;
+  needsConfirm?: boolean;
+}
+
 interface AppStateValue {
   hydrated: boolean;
+  cloudEnabled: boolean;
   route: Route;
   user: User | null;
   survey: Survey;
@@ -23,7 +31,9 @@ interface AppStateValue {
   templates: WorkoutTemplate[];
   preferences: UserPreferences;
   // actions
-  signUp: (name: string, email?: string) => void;
+  signUp: (name: string, email?: string) => void;               // local-only mode
+  signUpEmail: (name: string, email: string, password: string) => Promise<AuthResult>;
+  signInEmail: (email: string, password: string) => Promise<AuthResult>;
   signOut: () => void;
   setSurvey: (s: Survey) => void;
   setCurrentWorkout: (w: Workout | null) => void;
@@ -64,8 +74,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [preferences, setPreferencesState] = useState<UserPreferences>(defaultPreferences());
   const [route, setRoute] = useState<Route>("welcome");
 
-  // hydrate from localStorage on mount
-  useEffect(() => {
+  // Reload all in-memory state from localStorage (used after a cloud pull).
+  const loadAll = useCallback(() => {
     const u = Storage.loadUser();
     const cw = Storage.loadCurrentWorkout();
     setUser(u);
@@ -78,9 +88,61 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setTemplates(Storage.loadTemplates());
     setPreferencesState(Storage.loadPreferences());
     setRoute(computeRoute(u, cw));
-    setHydrated(true);
   }, []);
 
+  // Pull cloud data, start mirroring, ensure a profile exists, then hydrate.
+  const onSignedIn = useCallback(async (userId: string) => {
+    await pullAll(userId);
+    startSync(userId);
+    if (!Storage.loadUser()) {
+      let email: string | null = null;
+      if (supabase) {
+        const { data } = await supabase.auth.getUser();
+        email = data.user?.email ?? null;
+      }
+      const u: User = {
+        id: userId,
+        name: email ? email.split("@")[0] : "You",
+        email,
+        createdAt: new Date().toISOString(),
+        authProvider: "email",
+      };
+      Storage.saveUser(u);
+      await pushAllLocal(userId);
+    }
+    loadAll();
+  }, [loadAll]);
+
+  const didInit = useRef(false);
+  useEffect(() => {
+    if (didInit.current) return;
+    didInit.current = true;
+
+    // Pure-local mode: no Supabase configured.
+    if (!supabaseEnabled || !supabase) {
+      loadAll();
+      setHydrated(true);
+      return;
+    }
+
+    // Cloud mode: restore session if present.
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (data.session?.user) {
+          await onSignedIn(data.session.user.id);
+        } else {
+          setRoute("welcome");
+        }
+      } catch {
+        setRoute("welcome");
+      } finally {
+        setHydrated(true);
+      }
+    })();
+  }, [loadAll, onSignedIn]);
+
+  // ---- auth: local-only fallback ----
   const signUp = useCallback((name: string, email?: string) => {
     const cleanName = name.trim() || "You";
     const u: User = {
@@ -91,8 +153,39 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setRoute(computeRoute(u, currentWorkout));
   }, [currentWorkout]);
 
+  // ---- auth: Supabase email + password ----
+  const signUpEmail = useCallback(async (name: string, email: string, password: string): Promise<AuthResult> => {
+    if (!supabase) return { error: "Cloud not configured." };
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return { error: error.message };
+    if (!data.session || !data.user) return { needsConfirm: true };
+    const u: User = {
+      id: data.user.id, name: name.trim() || (email.split("@")[0] || "You"),
+      email, createdAt: new Date().toISOString(), authProvider: "email",
+    };
+    Storage.saveUser(u);
+    await pushAllLocal(data.user.id);
+    startSync(data.user.id);
+    loadAll();
+    return {};
+  }, [loadAll]);
+
+  const signInEmail = useCallback(async (email: string, password: string): Promise<AuthResult> => {
+    if (!supabase) return { error: "Cloud not configured." };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: error.message };
+    if (!data.user) return { error: "Sign in failed." };
+    await onSignedIn(data.user.id);
+    return {};
+  }, [onSignedIn]);
+
   const signOut = useCallback(() => {
-    Storage.saveIsAuthenticated(false);
+    stopSync();
+    if (supabase) void supabase.auth.signOut();
+    Storage.clearAll();
+    setUser(null); setSurveyState(emptySurvey()); setCurrentWorkoutState(null);
+    setLogsState([]); setSetLogs([]); setMeals([]); setWater([]); setTemplates([]);
+    setPreferencesState(defaultPreferences());
     setRoute("welcome");
   }, []);
 
@@ -158,11 +251,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value: AppStateValue = {
-    hydrated, route, user, survey, currentWorkout, logs, setLogs, meals, water,
-    templates, preferences,
-    signUp, signOut, setSurvey, setCurrentWorkout, finishWorkout, appendSetLogs,
-    addMeal, deleteMeal, addWater, saveTemplate, deleteTemplate, setPreferences,
-    goToSurvey, resetAll,
+    hydrated, cloudEnabled: supabaseEnabled, route, user, survey, currentWorkout,
+    logs, setLogs, meals, water, templates, preferences,
+    signUp, signUpEmail, signInEmail, signOut, setSurvey, setCurrentWorkout,
+    finishWorkout, appendSetLogs, addMeal, deleteMeal, addWater, saveTemplate,
+    deleteTemplate, setPreferences, goToSurvey, resetAll,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
