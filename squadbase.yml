@@ -1,0 +1,8 @@
+# Squadbase deployment config
+# Docs: https://www.squadbase.dev/en/docs
+framework: nextjs
+build:
+  command: npm run build
+  install: npm install
+runtime:
+  node: "20"
