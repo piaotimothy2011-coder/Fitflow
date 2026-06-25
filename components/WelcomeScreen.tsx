@@ -64,11 +64,11 @@ export default function WelcomeScreen() {
               <LogoMark size={60} className="mb-5 ff-float" />
               <div className="font-display text-7xl text-accentGreen leading-none">FITFLOW</div>
               <p className="text-accentGreen text-[13px] font-bold uppercase tracking-[0.18em] mt-4">Your AI personal trainer</p>
-              <h1 className="font-display text-[56px] leading-[0.92] text-white mt-3">
-                BUILD MUSCLE.<br /><span className="text-accentGreen">LOSE FAT.</span><br />TRAIN SMARTER.
+              <h1 className="font-display text-[52px] leading-[0.96] text-white mt-2">
+                BUILD MUSCLE,<br /><span className="text-accentGreen">LOSE FAT.</span>
               </h1>
-              <p className="text-textMuted text-[15px] mt-5 max-w-[310px] leading-snug">
-                Answer a few questions — get a plan that builds and progresses itself.
+              <p className="text-textMuted text-[15px] mt-4 max-w-[300px] leading-snug">
+                A plan that builds and progresses itself.
               </p>
             </div>
             {cloudEnabled ? (
@@ -86,9 +86,9 @@ export default function WelcomeScreen() {
           </>
         ) : (
           <>
-            <div className="pt-2">
-              <LogoMark size={48} className="mb-5" />
-              <h2 className="font-display text-6xl text-white leading-none">
+            <div className="pt-4">
+              <LogoMark size={44} className="mb-4" />
+              <h2 className="font-display text-[44px] text-white leading-none">
                 {mode === "signup" ? "CREATE ACCOUNT" : "WELCOME BACK"}
               </h2>
               <p className="text-textMuted text-[14px] mt-2">
@@ -97,7 +97,7 @@ export default function WelcomeScreen() {
             </div>
 
             {cloudEnabled ? (
-              <form className="mt-7 space-y-3" onSubmit={handleCloudSubmit}>
+              <form className="mt-9 space-y-3.5" onSubmit={handleCloudSubmit}>
                 {mode === "signup" && <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={inputCls} />}
                 <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" type="email" autoComplete="email" className={inputCls} />
                 <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 chars)" type="password"
@@ -114,7 +114,7 @@ export default function WelcomeScreen() {
                 <GhostButton onClick={back}>Back</GhostButton>
               </form>
             ) : (
-              <form className="mt-7 space-y-3" onSubmit={(e) => { e.preventDefault(); signUp(name, email || undefined); }}>
+              <form className="mt-9 space-y-3.5" onSubmit={(e) => { e.preventDefault(); signUp(name, email || undefined); }}>
                 <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={inputCls} />
                 <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email (optional)" type="email" className={inputCls} />
                 <PrimaryButton type="submit" disabled={!name.trim()}>Continue</PrimaryButton>
