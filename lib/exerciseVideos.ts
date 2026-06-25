@@ -43,6 +43,19 @@ export const EXERCISE_VIDEOS: Record<string, string> = {
   "Box Jumps": "G-bxQY57mKc",
   "Cat-Cow Flow": "Fa4ZMS5M7xA",
   "Box Breathing": "tEmt1Znux58",
+  "Treadmill Intervals": "ufhM_9eLU-s",
+  "Stationary Bike": "rEqRmKAQ5xM",
+  "Jogging in Place": "xmkYBO85leM",
+  "Hip Flexor Stretch": "WPWNaOzZGPo",
+  "Thoracic Rotation": "76TrGccD9r4",
+  "Hamstring Stretch": "LVY692zJK0A",
+  "Pigeon Pose": "0RQVD6viVXo",
+  "Child's Pose": "EniGBCHAEVQ",
+  "Sun Salutation": "1xRX1MuoImw",
+  "Broad Jump": "x9qlFXfQaZU",
+  "Lateral Bound": "niEGdFUQ6sY",
+  "Wall Slides": "Eaj_NG5_hIo",
+  "90/90 Hip Switch": "HUZimFZJZWU",
 };
 
 export function videoIdFor(name: string): string | null {

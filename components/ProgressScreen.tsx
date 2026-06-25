@@ -15,10 +15,11 @@ function startOfWeek(d: Date) {
 
 function Stat({ icon, value, label }: { icon: IconName; value: string; label: string }) {
   return (
-    <div className="flex-1 rounded-2xl bg-bgCard border border-border p-3.5">
-      <span className="text-accentGreen"><Icon name={icon} size={18} /></span>
-      <div className="font-display text-[28px] leading-none text-white mt-2">{value}</div>
-      <div className="text-textFaint text-[11px] mt-1.5 uppercase tracking-wider">{label}</div>
+    <div className="flex-1 rounded-2xl bg-bgCard border border-border p-3.5 text-center">
+      <div className="font-display text-[30px] leading-none text-accentGreen">{value}</div>
+      <div className="text-textFaint text-[10.5px] mt-1.5 uppercase tracking-wider flex items-center justify-center gap-1">
+        <Icon name={icon} size={12} />{label}
+      </div>
     </div>
   );
 }
@@ -39,6 +40,7 @@ export default function ProgressScreen() {
     else if (i > 0) break;
   }
   const totalMinutes = logs.reduce((a, l) => a + l.durationMinutes, 0);
+  const totalExercises = logs.reduce((a, l) => a + l.exercisesCompleted, 0);
 
   const weeks: number[] = Array(12).fill(0);
   const thisWeek = startOfWeek(new Date()).getTime();
@@ -50,17 +52,41 @@ export default function ProgressScreen() {
   const maxWeek = Math.max(1, ...weeks);
   const recovery = recoverySnapshot(setLogs).sort((a, b) => a.recovery - b.recovery);
   const records = computeRecords(setLogs).slice(0, 6);
+  const recent = [...logs].slice(0, 5);
+
+  const weekLabels = weeks.map((_, i) => {
+    const d = new Date(thisWeek - (11 - i) * 7 * 86400000);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  });
 
   return (
     <div className="px-6 pt-9">
-      <h1 className="font-display text-[44px] text-white leading-none mb-5">Progress</h1>
+      <h1 className="font-display text-[44px] text-white leading-none">Progress</h1>
+      <p className="text-textMuted text-[14px] mt-1.5 mb-5">Consistency is the win you can control.</p>
 
-      <div className="flex gap-2.5 mb-3">
-        <Stat icon="flame" value={`${streak}`} label="Day streak" />
-        <Stat icon="dumbbell" value={`${logs.length}`} label="Workouts" />
-        <Stat icon="clock" value={`${totalMinutes}`} label="Minutes" />
+      {/* white streak hero */}
+      <div className="rounded-[22px] bg-mintBg p-5 mb-3">
+        <div className="text-deepGreen/60 text-[12px] font-bold uppercase tracking-wider">Current streak</div>
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-end gap-2">
+            <span className="font-display text-[56px] text-deepGreen leading-none">{streak}</span>
+            <span className="text-midDeepGreen text-[18px] font-semibold mb-1.5">{streak === 1 ? "day" : "days"}</span>
+          </div>
+          <span className="text-accentGreenDark"><Icon name="flame" size={40} /></span>
+        </div>
+        <div className="text-midDeepGreen text-[13px] mt-2">
+          {streak > 0 ? "Keep showing up — momentum is everything." : "Train today to start a streak."}
+        </div>
       </div>
 
+      {/* stat tiles */}
+      <div className="flex gap-2.5 mb-3">
+        <Stat icon="play" value={`${logs.length}`} label="Sessions" />
+        <Stat icon="clock" value={`${totalMinutes}`} label="Minutes" />
+        <Stat icon="dumbbell" value={`${totalExercises}`} label="Exercises" />
+      </div>
+
+      {/* last 12 weeks */}
       <Panel>
         <SectionLabel className="mb-3">Last 12 weeks</SectionLabel>
         <div className="flex items-end gap-1.5 h-28">
@@ -70,8 +96,32 @@ export default function ProgressScreen() {
             </div>
           ))}
         </div>
+        <div className="flex justify-between mt-2 text-textFaint text-[10px]">
+          {[0, 2, 4, 6, 8, 10].map((i) => <span key={i}>{weekLabels[i]}</span>)}
+        </div>
       </Panel>
 
+      {/* recent sessions */}
+      <Panel>
+        <SectionLabel className="mb-3">Recent sessions</SectionLabel>
+        {recent.length === 0 ? (
+          <p className="text-textFaint text-[14px]">Finish your first workout and it will land here.</p>
+        ) : (
+          <div className="space-y-2.5">
+            {recent.map((l) => (
+              <div key={l.id} className="flex items-center gap-3">
+                <span className="w-9 h-9 rounded-xl bg-accentGreen/15 text-accentGreen flex items-center justify-center shrink-0"><Icon name="check" size={17} /></span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-white text-[14px] font-medium truncate">{l.workoutName}</div>
+                  <div className="text-textFaint text-[12px]">{new Date(l.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {l.durationMinutes} min · {l.exercisesCompleted} exercises</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Panel>
+
+      {/* recovery */}
       <Panel>
         <SectionLabel className="mb-3">Muscle recovery</SectionLabel>
         {setLogs.length === 0 ? (
@@ -93,6 +143,7 @@ export default function ProgressScreen() {
         )}
       </Panel>
 
+      {/* PRs */}
       <Panel>
         <div className="flex items-center gap-2 mb-3">
           <span className="text-accentGreen"><Icon name="trophy" size={16} /></span>
