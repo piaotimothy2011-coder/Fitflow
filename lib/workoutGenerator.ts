@@ -7,15 +7,6 @@ import { recoverySnapshot, overallReadiness, recommendedMuscles } from "./muscle
 import { muscleCategory, type MuscleGroup } from "./muscle";
 import { newSet, type Exercise, type ExerciseSet, type SetLog, type Survey, type Workout, uuid } from "./models";
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 function exerciseCount(minutes: number, style: TrainingStyle): number {
   switch (style) {
     case "mobility": case "mindful":
@@ -29,18 +20,33 @@ function exerciseCount(minutes: number, style: TrainingStyle): number {
   }
 }
 
-function balancedPick(pool: CatalogExercise[], focus: string[], count: number): CatalogExercise[] {
+// Deterministic fit score: how well an exercise matches the user's inputs.
+function fitScore(ex: CatalogExercise, focus: string[], style: TrainingStyle, level: FitnessLevel): number {
+  let s = 0;
+  if (ex.styles.includes(style)) s += 3;                 // matches training goal
   const requested = focus.filter((f) => f !== "No preference" && f !== "");
+  s += requested.filter((f) => ex.bodyParts.includes(f)).length * 2.5; // hits target areas
+  s += ex.minLevel <= level ? 1 : -3;                    // appropriate for ability
+  s -= Math.abs(level - ex.minLevel) * 0.3;              // not far below ability
+  s += ex.primaryMuscles.length * 0.4;                   // favour compounds
+  return s;
+}
+
+// Deterministic selection: same inputs always yield the same plan, with each
+// requested focus area guaranteed representation. No randomness.
+function balancedPick(pool: CatalogExercise[], focus: string[], style: TrainingStyle, level: FitnessLevel, count: number): CatalogExercise[] {
+  const requested = focus.filter((f) => f !== "No preference" && f !== "");
+  const ranked = [...pool].sort((a, b) =>
+    (fitScore(b, focus, style, level) - fitScore(a, focus, style, level)) || a.name.localeCompare(b.name));
   const chosen: CatalogExercise[] = [];
-  let remaining = shuffle(pool);
   for (const area of requested) {
     if (chosen.length >= count) break;
-    const i = remaining.findIndex((ex) => ex.bodyParts.includes(area));
-    if (i >= 0) chosen.push(remaining.splice(i, 1)[0]);
+    const pick = ranked.find((ex) => ex.bodyParts.includes(area) && !chosen.includes(ex));
+    if (pick) chosen.push(pick);
   }
-  for (const ex of remaining) {
+  for (const ex of ranked) {
     if (chosen.length >= count) break;
-    if (!chosen.some((c) => c.name === ex.name)) chosen.push(ex);
+    if (!chosen.includes(ex)) chosen.push(ex);
   }
   return chosen;
 }
@@ -130,7 +136,7 @@ export function buildWorkout(survey: Survey): Workout {
   }
 
   const count = exerciseCount(minutes, style);
-  const picked = balancedPick(pool, survey.focus, count);
+  const picked = balancedPick(pool, survey.focus, style, level, count);
   const addRestNote = (survey.age ?? 0) >= 55;
 
   const exercises: Exercise[] = picked.map((ex) => {

@@ -5,18 +5,15 @@ import { SectionLabel } from "./ui";
 import { Icon } from "./icons";
 import { SurveyCatalog, goalIcon } from "@/lib/surveyCatalog";
 import { makeFreshCopy } from "@/lib/models";
-import { buildWorkout, buildSmartPlan } from "@/lib/workoutGenerator";
-import { applyProgression } from "@/lib/progressionEngine";
 
 export default function LibraryScreen({ onStarted }: { onStarted: () => void }) {
-  const { survey, setLogs, preferences, templates, deleteTemplate, setCurrentWorkout } = useApp();
+  const { survey, setSurvey, goToSurvey, templates, deleteTemplate, setCurrentWorkout } = useApp();
 
-  const startGoal = (goal: string) => {
-    const s = { ...survey, goal };
-    let w = setLogs.length ? buildSmartPlan(s, setLogs) : buildWorkout(s);
-    w = applyProgression(w, setLogs, preferences.units);
-    setCurrentWorkout(w);
-    onStarted();
+  // Picking a goal re-runs the onboarding flow (pre-set to that goal) so the
+  // user customises a real plan — it is not generated randomly on tap.
+  const customizeForGoal = (goal: string) => {
+    setSurvey({ ...survey, goal });
+    goToSurvey();
   };
 
   const startTemplate = (id: string) => {
@@ -29,7 +26,7 @@ export default function LibraryScreen({ onStarted }: { onStarted: () => void }) 
   return (
     <div className="px-6 pt-9">
       <h1 className="font-display text-[44px] text-white leading-none">Library</h1>
-      <p className="text-textMuted text-[14px] mt-1.5 mb-6">Re-run a saved plan or generate a fresh one for any goal.</p>
+      <p className="text-textMuted text-[14px] mt-1.5 mb-6">Re-run a saved plan, or build a fresh customised plan for any goal.</p>
 
       {templates.length > 0 && (
         <div className="mb-7">
@@ -55,10 +52,10 @@ export default function LibraryScreen({ onStarted }: { onStarted: () => void }) 
         </div>
       )}
 
-      <SectionLabel className="mb-3">Browse by goal</SectionLabel>
+      <SectionLabel className="mb-3">Build a plan by goal</SectionLabel>
       <div className="grid grid-cols-2 gap-3 pb-4">
         {SurveyCatalog.goals.map((g) => (
-          <button key={g} onClick={() => startGoal(g)}
+          <button key={g} onClick={() => customizeForGoal(g)}
             className="rounded-2xl border border-borderStrong bg-bgCard p-3.5 text-left transition active:scale-[0.97] hover:border-white/25 flex flex-col gap-3 min-h-[104px]">
             <span className="w-11 h-11 rounded-xl bg-borderStrong text-accentGreen flex items-center justify-center">
               <Icon name={goalIcon[g] ?? "spark"} size={24} />
