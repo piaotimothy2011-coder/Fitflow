@@ -4,7 +4,7 @@ import {
   type Survey, type Workout, type WorkoutLog, type User, type UserPreferences,
   type MealEntry, type WaterEntry, type SetLog, type WorkoutTemplate,
   emptySurvey, defaultPreferences, uuid,
-  exerciseCompletedSetCount,
+  exerciseCompletedSetCount, makeFreshCopy,
 } from "@/lib/models";
 import { Storage } from "@/lib/storage";
 import { supabase, supabaseEnabled } from "@/lib/supabase";
@@ -24,6 +24,8 @@ interface AppStateValue {
   user: User | null;
   survey: Survey;
   currentWorkout: Workout | null;
+  program: Workout[];
+  programIndex: number;
   logs: WorkoutLog[];
   setLogs: SetLog[];
   meals: MealEntry[];
@@ -37,6 +39,8 @@ interface AppStateValue {
   signOut: () => void;
   setSurvey: (s: Survey) => void;
   setCurrentWorkout: (w: Workout | null) => void;
+  installProgram: (program: Workout[]) => void;
+  startSession: (index: number) => void;
   finishWorkout: (w: Workout, durationMinutes: number) => void;
   appendSetLogs: (logs: SetLog[]) => void;
   addMeal: (m: MealEntry) => void;
@@ -66,6 +70,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [survey, setSurveyState] = useState<Survey>(emptySurvey());
   const [currentWorkout, setCurrentWorkoutState] = useState<Workout | null>(null);
+  const [program, setProgram] = useState<Workout[]>([]);
+  const [programIndex, setProgramIndex] = useState(0);
   const [logs, setLogsState] = useState<WorkoutLog[]>([]);
   const [setLogs, setSetLogs] = useState<SetLog[]>([]);
   const [meals, setMeals] = useState<MealEntry[]>([]);
@@ -86,6 +92,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setMeals(Storage.loadMeals());
     setWater(Storage.loadWater());
     setTemplates(Storage.loadTemplates());
+    setProgram(Storage.loadProgram());
+    setProgramIndex(Storage.loadProgramIndex());
     setPreferencesState(Storage.loadPreferences());
     setRoute(computeRoute(u, cw));
   }, []);
@@ -185,6 +193,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     Storage.clearAll();
     setUser(null); setSurveyState(emptySurvey()); setCurrentWorkoutState(null);
     setLogsState([]); setSetLogs([]); setMeals([]); setWater([]); setTemplates([]);
+    setProgram([]); setProgramIndex(0);
     setPreferencesState(defaultPreferences());
     setRoute("welcome");
   }, []);
@@ -197,6 +206,22 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setCurrentWorkoutState(w); Storage.saveCurrentWorkout(w);
     setRoute(computeRoute(user, w));
   }, [user]);
+
+  const installProgram = useCallback((prog: Workout[]) => {
+    setProgram(prog); Storage.saveProgram(prog);
+    setProgramIndex(0); Storage.saveProgramIndex(0);
+    const first = prog[0] ? makeFreshCopy(prog[0]) : null;
+    setCurrentWorkoutState(first); Storage.saveCurrentWorkout(first);
+    setRoute(computeRoute(user, first));
+  }, [user]);
+
+  const startSession = useCallback((i: number) => {
+    if (!program[i]) return;
+    setProgramIndex(i); Storage.saveProgramIndex(i);
+    const w = makeFreshCopy(program[i]);
+    setCurrentWorkoutState(w); Storage.saveCurrentWorkout(w);
+    setRoute("main");
+  }, [program]);
 
   const appendSetLogs = useCallback((newLogs: SetLog[]) => {
     setSetLogs((prev) => {
@@ -214,9 +239,17 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       durationMinutes, goal: survey.goal,
     };
     setLogsState((prev) => { const next = [log, ...prev]; Storage.saveLogs(next); return next; });
-    setCurrentWorkoutState(null); Storage.saveCurrentWorkout(null);
-    setRoute("survey");
-  }, [survey.goal]);
+    if (program.length > 0) {
+      const nextIndex = (programIndex + 1) % program.length;
+      const next = makeFreshCopy(program[nextIndex]);
+      setProgramIndex(nextIndex); Storage.saveProgramIndex(nextIndex);
+      setCurrentWorkoutState(next); Storage.saveCurrentWorkout(next);
+      setRoute("main");
+    } else {
+      setCurrentWorkoutState(null); Storage.saveCurrentWorkout(null);
+      setRoute("survey");
+    }
+  }, [survey.goal, program, programIndex]);
 
   const addMeal = useCallback((m: MealEntry) => {
     setMeals((prev) => { const next = [m, ...prev]; Storage.saveMeals(next); return next; });
@@ -247,13 +280,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     Storage.clearAll();
     setUser(null); setSurveyState(emptySurvey()); setCurrentWorkoutState(null);
     setLogsState([]); setSetLogs([]); setMeals([]); setWater([]); setTemplates([]);
+    setProgram([]); setProgramIndex(0);
     setPreferencesState(defaultPreferences()); setRoute("welcome");
   }, []);
 
   const value: AppStateValue = {
-    hydrated, cloudEnabled: supabaseEnabled, route, user, survey, currentWorkout,
+    hydrated, cloudEnabled: supabaseEnabled, route, user, survey, currentWorkout, program, programIndex,
     logs, setLogs, meals, water, templates, preferences,
-    signUp, signUpEmail, signInEmail, signOut, setSurvey, setCurrentWorkout,
+    signUp, signUpEmail, signInEmail, signOut, setSurvey, setCurrentWorkout, installProgram, startSession,
     finishWorkout, appendSetLogs, addMeal, deleteMeal, addWater, saveTemplate,
     deleteTemplate, setPreferences, goToSurvey, resetAll,
   };

@@ -11,6 +11,7 @@ import { targetsForSurvey } from "@/lib/nutritionCalculator";
 import { mealPlansForGoal } from "@/lib/mealPlanCatalog";
 import { recipesFor } from "@/lib/recipeCatalog";
 import { waterStepOz } from "@/lib/units";
+import { FOOD_CATALOG, type Food } from "@/lib/foodCatalog";
 
 function CalRing({ consumed, target }: { consumed: number; target: number }) {
   const pct = target ? Math.min(consumed / target, 1) : 0;
@@ -171,27 +172,67 @@ export default function DietScreen() {
 }
 
 function AddMealSheet({ slot, onClose, onAdd }: { slot: MealSlot; onClose: () => void; onAdd: (m: MealEntry) => void }) {
+  const [q, setQ] = useState("");
+  const [custom, setCustom] = useState(false);
   const [name, setName] = useState("");
   const [cal, setCal] = useState("");
   const [p, setP] = useState("");
   const [c, setC] = useState("");
   const [f, setF] = useState("");
+
+  const matches = q.trim()
+    ? FOOD_CATALOG.filter((food) => food.name.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 8)
+    : FOOD_CATALOG.slice(0, 8);
+
+  const addFood = (food: Food) => {
+    onAdd({
+      id: uuid(), date: new Date().toISOString(), slot, name: food.name, servings: 1,
+      macros: { calories: food.kcal, proteinG: food.p, carbsG: food.c, fatG: food.f }, externalId: null,
+    });
+  };
+
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/60" onClick={onClose}>
-      <div className="w-full max-w-[440px] bg-bgCard border-t border-border rounded-t-3xl p-6 ff-pop" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-[440px] bg-bgCard border-t border-border rounded-t-3xl p-6 ff-pop max-h-[85vh] overflow-y-auto no-scrollbar" onClick={(e) => e.stopPropagation()}>
         <div className="font-display text-3xl text-white mb-4">Add to {mealSlotLabel(slot)}</div>
-        <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Food name"
-          className="w-full rounded-button bg-bgPhone border border-borderStrong px-4 py-3 mb-3 outline-none focus:border-accentGreen" />
-        <div className="grid grid-cols-4 gap-2 mb-4">
-          {[["kcal", cal, setCal], ["P", p, setP], ["C", c, setC], ["F", f, setF]].map(([label, val, set]: any) => (
-            <input key={label} type="number" inputMode="numeric" value={val} onChange={(e) => set(e.target.value)} placeholder={label}
-              className="w-full min-w-0 rounded-lg bg-bgPhone border border-borderStrong px-2 py-2 text-center outline-none focus:border-accentGreen" />
-          ))}
-        </div>
-        <PrimaryButton disabled={!name.trim()} onClick={() => onAdd({
-          id: uuid(), date: new Date().toISOString(), slot, name: name.trim(), servings: 1,
-          macros: { calories: Number(cal) || 0, proteinG: Number(p) || 0, carbsG: Number(c) || 0, fatG: Number(f) || 0 }, externalId: null,
-        })}>Add</PrimaryButton>
+
+        {!custom ? (
+          <>
+            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search foods…"
+              className="w-full rounded-button bg-bgPhone border border-borderStrong px-4 py-3 mb-3 outline-none focus:border-accentGreen" />
+            <div className="space-y-2">
+              {matches.map((food) => (
+                <button key={food.name} onClick={() => addFood(food)}
+                  className="w-full flex items-center justify-between rounded-xl bg-bgPhone border border-borderStrong px-4 py-3 text-left active:scale-[0.98] transition hover:border-white/25">
+                  <div className="min-w-0">
+                    <div className="text-white text-[14px] font-medium truncate">{food.name}</div>
+                    <div className="text-textFaint text-[12px]">{food.kcal} kcal · P{food.p} C{food.c} F{food.f}</div>
+                  </div>
+                  <span className="w-8 h-8 rounded-full bg-accentGreen/15 text-accentGreen flex items-center justify-center shrink-0"><Icon name="plus" size={16} /></span>
+                </button>
+              ))}
+              {matches.length === 0 && <p className="text-textFaint text-[13px] py-2">No match in our food list.</p>}
+            </div>
+            <button onClick={() => { setCustom(true); setName(q); }}
+              className="w-full mt-3 text-center text-textMuted text-[13px] py-2">Can&apos;t find it? Enter manually</button>
+          </>
+        ) : (
+          <>
+            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Food name"
+              className="w-full rounded-button bg-bgPhone border border-borderStrong px-4 py-3 mb-3 outline-none focus:border-accentGreen" />
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {[["kcal", cal, setCal], ["P", p, setP], ["C", c, setC], ["F", f, setF]].map(([label, val, set]: any) => (
+                <input key={label} type="number" inputMode="numeric" value={val} onChange={(e) => set(e.target.value)} placeholder={label}
+                  className="w-full min-w-0 rounded-lg bg-bgPhone border border-borderStrong px-2 py-2 text-center outline-none focus:border-accentGreen" />
+              ))}
+            </div>
+            <PrimaryButton disabled={!name.trim()} onClick={() => onAdd({
+              id: uuid(), date: new Date().toISOString(), slot, name: name.trim(), servings: 1,
+              macros: { calories: Number(cal) || 0, proteinG: Number(p) || 0, carbsG: Number(c) || 0, fatG: Number(f) || 0 }, externalId: null,
+            })}>Add</PrimaryButton>
+            <button onClick={() => setCustom(false)} className="w-full text-textMuted text-[13px] mt-3">Back to search</button>
+          </>
+        )}
         <button onClick={onClose} className="w-full text-textFaint text-[14px] mt-3">Cancel</button>
       </div>
     </div>

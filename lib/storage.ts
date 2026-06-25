@@ -18,6 +18,8 @@ const KEYS = {
   water: "ff.water",
   setLogs: "ff.setLogs",
   templates: "ff.templates",
+  program: "ff.program",
+  programIndex: "ff.programIndex",
   auth: "ff.isAuthenticated",
 } as const;
 
@@ -93,6 +95,12 @@ export const Storage = {
 
   loadTemplates: () => read<WorkoutTemplate[]>(KEYS.templates, []),
   saveTemplates: (t: WorkoutTemplate[]) => write(KEYS.templates, t),
+
+  loadProgram: () => read<Workout[]>(KEYS.program, []),
+  saveProgram: (p: Workout[]) => write(KEYS.program, p),
+
+  loadProgramIndex: () => read<number>(KEYS.programIndex, 0),
+  saveProgramIndex: (i: number) => write(KEYS.programIndex, i),
 
   loadIsAuthenticated: () => read<boolean>(KEYS.auth, false),
   saveIsAuthenticated: (v: boolean) => write(KEYS.auth, v),

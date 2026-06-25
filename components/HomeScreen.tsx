@@ -30,7 +30,7 @@ function Ring({ done, total }: { done: number; total: number }) {
 
 export default function HomeScreen({ onStart, onProfile, onLibrary }:
   { onStart: () => void; onProfile?: () => void; onLibrary?: () => void }) {
-  const { user, currentWorkout, survey, setLogs, preferences, goToSurvey, setCurrentWorkout, saveTemplate } = useApp();
+  const { user, currentWorkout, survey, setLogs, preferences, goToSurvey, setCurrentWorkout, saveTemplate, program, programIndex, startSession } = useApp();
   const [toast, setToast] = useState<string | null>(null);
   const [detail, setDetail] = useState<Exercise | null>(null);
   if (!currentWorkout) return null;
@@ -119,6 +119,26 @@ export default function HomeScreen({ onStart, onProfile, onLibrary }:
         <Quick icon="regenerate" title="Fresh mix" sub="New exercises" onClick={() => regenerate(false)} />
         <Quick icon="library" title="Library" sub="Browse goals" onClick={onLibrary} />
       </div>
+
+      {/* this week */}
+      {program.length > 1 && (
+        <div className="mt-7">
+          <SectionLabel className="mb-2.5">This week · {program.length} sessions</SectionLabel>
+          <div className="flex gap-2.5 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
+            {program.map((d, i) => {
+              const active = i === programIndex;
+              return (
+                <button key={i} onClick={() => startSession(i)}
+                  className={`shrink-0 w-[150px] rounded-2xl border p-3.5 text-left transition active:scale-[0.97] ${active ? "border-accentGreen bg-accentGreen/10" : "border-borderStrong bg-bgCard hover:border-white/20"}`}>
+                  <div className={`text-[11px] font-bold uppercase tracking-wider ${active ? "text-accentGreen" : "text-textFaint"}`}>Day {i + 1}{active ? " · today" : ""}</div>
+                  <div className="text-white text-[14px] font-semibold mt-1 truncate">{d.workoutName}</div>
+                  <div className="text-textFaint text-[11px] mt-1">{d.exercises.length} exercises</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* exercises */}
       <div className="flex items-center justify-between mt-8 mb-3">

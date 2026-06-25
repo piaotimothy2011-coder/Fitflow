@@ -5,7 +5,7 @@ import { PrimaryButton } from "./ui";
 import { Icon, type IconName } from "./icons";
 import { SurveyCatalog, goalIcon } from "@/lib/surveyCatalog";
 import { type Survey, type BiologicalSex } from "@/lib/models";
-import { buildWorkout, buildSmartPlan } from "@/lib/workoutGenerator";
+import { buildProgram } from "@/lib/workoutGenerator";
 import { applyProgression } from "@/lib/progressionEngine";
 
 const SEXES: { id: BiologicalSex; label: string }[] = [
@@ -16,7 +16,7 @@ const SEXES: { id: BiologicalSex; label: string }[] = [
 const TOTAL = 7;
 
 export default function SurveyFlow() {
-  const { survey, setSurvey, setCurrentWorkout, setLogs, preferences } = useApp();
+  const { survey, setSurvey, installProgram, setLogs, preferences } = useApp();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Survey>({ ...survey, mealsPerDay: survey.mealsPerDay || 3 });
   const [building, setBuilding] = useState(false);
@@ -31,9 +31,8 @@ export default function SurveyFlow() {
     setBuilding(true);
     setSurvey(draft);
     setTimeout(() => {
-      let w = draft && setLogs.length ? buildSmartPlan(draft, setLogs) : buildWorkout(draft);
-      w = applyProgression(w, setLogs, preferences.units);
-      setCurrentWorkout(w);
+      const program = buildProgram(draft).map((w) => applyProgression(w, setLogs, preferences.units));
+      installProgram(program);
     }, 700);
   };
 

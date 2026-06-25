@@ -234,3 +234,28 @@ export function buildSmartPlan(survey: Survey, setLogs: SetLog[]): Workout {
   const meta = `${minutes} min · Recovery-aware · ${readinessPct}% readiness · ${exercises.length} exercises`;
   return { id: uuid(), workoutName: smartWorkoutName(targetMuscles, style), tag: "SMART PLAN", meta, exercises };
 }
+
+
+// ---- Multi-day program (long-term plan) ----
+function splitsForDays(days: number, survey: Survey): string[][] {
+  const userFocus = survey.focus.filter((f) => f && f !== "No preference");
+  if (userFocus.length >= 2) {
+    return Array.from({ length: days }, (_, i) => [userFocus[i % userFocus.length]]);
+  }
+  const presets: Record<number, string[][]> = {
+    1: [["Full body"]],
+    2: [["Upper body"], ["Lower body"]],
+    3: [["Upper body"], ["Lower body"], ["Full body"]],
+    4: [["Chest and arms"], ["Back and posture"], ["Glutes and legs"], ["Core and abs"]],
+    5: [["Chest and arms"], ["Back and posture"], ["Glutes and legs"], ["Shoulders"], ["Core and abs"]],
+    6: [["Chest and arms"], ["Back and posture"], ["Glutes and legs"], ["Shoulders"], ["Core and abs"], ["Full body"]],
+    7: [["Chest and arms"], ["Back and posture"], ["Glutes and legs"], ["Shoulders"], ["Core and abs"], ["Full body"], ["Full body"]],
+  };
+  return presets[days] ?? presets[3];
+}
+
+// Build a full weekly program: one distinct session per training day.
+export function buildProgram(survey: Survey): Workout[] {
+  const days = Math.max(1, Math.min(survey.days || 3, 7));
+  return splitsForDays(days, survey).map((focus) => buildWorkout({ ...survey, focus }));
+}
