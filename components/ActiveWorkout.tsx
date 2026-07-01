@@ -113,6 +113,13 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
     }));
   };
 
+  // Rest between sets: honour an interval prescription like "40 sec on / 20 off",
+  // otherwise fall back to the user's default rest.
+  const restForDetail = (detail: string) => {
+    const off = detail.match(/(\d+)\s*(?:sec\s*)?off/i);
+    return off ? Math.max(5, parseInt(off[1], 10)) : preferences.defaultRestSeconds;
+  };
+
   const toggleComplete = (exId: string, setId: string) => {
     const exx = w.exercises.find((e) => e.id === exId)!;
     const set = exx.sets.find((s) => s.id === setId)!;
@@ -131,7 +138,7 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
       }
       priorLogs.current = [log, ...priorLogs.current];
       pendingLogs.current = [log, ...pendingLogs.current];
-      setRest(preferences.defaultRestSeconds);
+      setRest(restForDetail(exx.detail));
     }
   };
   completeRef.current = toggleComplete;
