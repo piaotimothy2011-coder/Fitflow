@@ -4,7 +4,7 @@ import { AppStateProvider, useApp } from "./AppState";
 import WelcomeScreen from "./WelcomeScreen";
 import SurveyFlow from "./SurveyFlow";
 import MainTabs from "./MainTabs";
-import { LogoMark } from "./icons";
+import { LogoMark, Icon } from "./icons";
 import { PrimaryButton } from "./ui";
 import InstallPrompt from "./InstallPrompt";
 
@@ -14,6 +14,7 @@ function UpdatePasswordScreen() {
   const [pw2, setPw2] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [show, setShow] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -31,8 +32,18 @@ function UpdatePasswordScreen() {
       <h2 className="font-display text-[40px] text-white leading-none">SET A NEW PASSWORD</h2>
       <p className="text-textMuted text-[14px] mt-2">Choose a new password for your account.</p>
       <form className="mt-8 space-y-3.5" onSubmit={submit}>
-        <input autoFocus type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password (min 6 chars)" className={inputCls} />
-        <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} placeholder="Confirm new password" className={inputCls} />
+        <div className="relative">
+          <input autoFocus type={show ? "text" : "password"} value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password (min 6 chars)" className={`${inputCls} pr-12`} />
+          <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 text-textFaint hover:text-white transition">
+            <Icon name={show ? "eyeOff" : "eye"} size={18} />
+          </button>
+        </div>
+        <div className="relative">
+          <input type={show ? "text" : "password"} value={pw2} onChange={(e) => setPw2(e.target.value)} placeholder="Confirm new password" className={`${inputCls} pr-12`} />
+          <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 text-textFaint hover:text-white transition">
+            <Icon name={show ? "eyeOff" : "eye"} size={18} />
+          </button>
+        </div>
         {error && <p className="text-red-400 text-[13px]">{error}</p>}
         <PrimaryButton type="submit" disabled={busy}>{busy ? "Saving…" : "Update password"}</PrimaryButton>
       </form>

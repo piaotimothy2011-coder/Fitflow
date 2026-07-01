@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useApp } from "./AppState";
 import { PrimaryButton, GhostButton } from "./ui";
-import { LogoMark } from "./icons";
+import { LogoMark, Icon } from "./icons";
 
 function Background() {
   const particles = [
@@ -35,6 +35,7 @@ export default function WelcomeScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -117,8 +118,14 @@ export default function WelcomeScreen() {
               <form className="mt-9 space-y-3.5" onSubmit={handleCloudSubmit}>
                 {mode === "signup" && <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={inputCls} />}
                 <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" type="email" autoComplete="email" className={inputCls} />
-                <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 chars)" type="password"
-                  autoComplete={mode === "signup" ? "new-password" : "current-password"} className={inputCls} />
+                <div className="relative">
+                  <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 chars)" type={showPw ? "text" : "password"}
+                    autoComplete={mode === "signup" ? "new-password" : "current-password"} className={`${inputCls} pr-12`} />
+                  <button type="button" onClick={() => setShowPw((v) => !v)} aria-label={showPw ? "Hide password" : "Show password"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-textFaint hover:text-white transition">
+                    <Icon name={showPw ? "eyeOff" : "eye"} size={18} />
+                  </button>
+                </div>
                 {error && <p className="text-red-400 text-[13px]">{error}</p>}
                 {info && <p className="text-accentGreen text-[13px]">{info}</p>}
                 <PrimaryButton type="submit" disabled={busy || !email.trim() || password.length < 6}>

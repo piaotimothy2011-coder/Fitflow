@@ -4,7 +4,7 @@ import {
   Flame, Dumbbell, HeartPulse, Weight, PersonStanding, Brain, Medal,
   Footprints, BriefcaseMedical, Home, BarChart3, Carrot, User, Library,
   Droplet, Clock, Check, Plus, Sparkles, Zap, Lightbulb, Trophy, X, Play,
-  Leaf, ChevronLeft, ChevronRight, Scale, Pencil, RefreshCw, Bookmark, Target,
+  Leaf, ChevronLeft, ChevronRight, Scale, Pencil, RefreshCw, Bookmark, Target, Eye, EyeOff,
   type LucideIcon,
 } from "lucide-react";
 
@@ -15,7 +15,7 @@ export type IconName =
   | "today" | "library" | "progress" | "diet" | "profile"
   | "water" | "clock" | "check" | "plus" | "spark" | "dumbbell"
   | "bolt" | "bulb" | "trophy" | "close" | "play" | "leaf" | "back"
-  | "scale" | "medal" | "chevron" | "edit" | "regenerate" | "bookmark" | "target" | "run";
+  | "scale" | "medal" | "chevron" | "edit" | "regenerate" | "bookmark" | "target" | "run" | "eye" | "eyeOff";
 
 const MAP: Record<IconName, LucideIcon> = {
   flame: Flame, muscle: Dumbbell, endurance: HeartPulse, strength: Weight,
@@ -25,7 +25,7 @@ const MAP: Record<IconName, LucideIcon> = {
   plus: Plus, spark: Sparkles, dumbbell: Dumbbell, bolt: Zap, bulb: Lightbulb,
   trophy: Trophy, close: X, play: Play, leaf: Leaf, back: ChevronLeft,
   scale: Scale, medal: Medal, chevron: ChevronRight, edit: Pencil,
-  regenerate: RefreshCw, bookmark: Bookmark, target: Target, run: Footprints,
+  regenerate: RefreshCw, bookmark: Bookmark, target: Target, run: Footprints, eye: Eye, eyeOff: EyeOff,
 };
 
 export function Icon({ name, className = "", size = 22 }: { name: IconName; className?: string; size?: number }) {
