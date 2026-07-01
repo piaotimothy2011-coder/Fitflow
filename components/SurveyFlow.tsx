@@ -7,6 +7,7 @@ import { SurveyCatalog, goalIcon } from "@/lib/surveyCatalog";
 import { type Survey, type BiologicalSex } from "@/lib/models";
 import { buildProgram } from "@/lib/workoutGenerator";
 import { applyProgression } from "@/lib/progressionEngine";
+import { weightUnit, weightToDisplay, weightFromDisplay, heightToDisplay, heightFromDisplay } from "@/lib/units";
 
 const SEXES: { id: BiologicalSex; label: string }[] = [
   { id: "male", label: "Male" }, { id: "female", label: "Female" },
@@ -16,7 +17,8 @@ const SEXES: { id: BiologicalSex; label: string }[] = [
 const TOTAL = 7;
 
 export default function SurveyFlow() {
-  const { survey, setSurvey, installProgram, setLogs, preferences } = useApp();
+  const { survey, setSurvey, installProgram, setLogs, preferences, setPreferences } = useApp();
+  const units = preferences.units;
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Survey>({ ...survey, mealsPerDay: survey.mealsPerDay || 3 });
   const [building, setBuilding] = useState(false);
@@ -127,14 +129,25 @@ export default function SurveyFlow() {
 
         {step === 5 && (
           <Section title="About you" subtitle="Powers your calorie & macro targets. All optional.">
+            <Label>Measurement system</Label>
+            <div className="grid grid-cols-2 gap-2.5 mb-5">
+              <SelChip label="Imperial (lb, in)" selected={units === "imperial"} onClick={() => setPreferences({ ...preferences, units: "imperial" })} />
+              <SelChip label="Metric (kg, cm)" selected={units === "metric"} onClick={() => setPreferences({ ...preferences, units: "metric" })} />
+            </div>
             <div className="grid grid-cols-2 gap-2.5 mb-4">
               {SEXES.map((s) => (
                 <SelChip key={s.id} label={s.label} selected={draft.sex === s.id} onClick={() => update({ sex: s.id })} />
               ))}
             </div>
             <NumberField label="Age" value={draft.age} placeholder="30" onChange={(v) => update({ age: v })} />
-            <NumberField label="Height (cm)" value={draft.heightCm} placeholder="170" onChange={(v) => update({ heightCm: v })} />
-            <NumberField label="Weight (kg)" value={draft.weightKg} placeholder="70" onChange={(v) => update({ weightKg: v })} />
+            <NumberField label={`Height (${units === "metric" ? "cm" : "in"})`}
+              value={draft.heightCm != null ? Math.round(heightToDisplay(draft.heightCm, units)) : null}
+              placeholder={units === "metric" ? "170" : "67"}
+              onChange={(v) => update({ heightCm: v == null ? null : heightFromDisplay(v, units) })} />
+            <NumberField label={`Weight (${weightUnit(units)})`}
+              value={draft.weightKg != null ? Math.round(weightToDisplay(draft.weightKg, units)) : null}
+              placeholder={units === "metric" ? "70" : "155"}
+              onChange={(v) => update({ weightKg: v == null ? null : weightFromDisplay(v, units) })} />
           </Section>
         )}
 
