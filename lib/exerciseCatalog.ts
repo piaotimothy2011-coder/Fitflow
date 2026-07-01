@@ -123,6 +123,21 @@ function intersects<T>(a: Iterable<T>, b: Set<T>): boolean {
   return false;
 }
 
+// Equipment that adds external load, so a weight (lb/kg) is meaningful.
+// Everything else — bodyweight, bands, cardio, pull-up bar, yoga — is logged
+// by reps/time only, so the weight input is hidden for those.
+const LOAD_EQUIPMENT = new Set([
+  "Dumbbells", "Kettlebells", "Barbell and rack", "Cable machine",
+]);
+const CATALOG_BY_NAME = new Map(EXERCISE_CATALOG.map((e) => [e.name, e]));
+
+// True when the exercise is normally loaded with external weight.
+export function isWeightedExercise(name: string): boolean {
+  const e = CATALOG_BY_NAME.get(name);
+  if (!e) return false; // unknown / bodyweight-style move: reps only
+  return e.equipment.some((q) => LOAD_EQUIPMENT.has(q));
+}
+
 export function filterCatalog(
   equipment: string[], focus: string[], level: FitnessLevel, style: TrainingStyle
 ): CatalogExercise[] {

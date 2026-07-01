@@ -10,9 +10,11 @@ import {
 import { isNew1RMPR } from "@/lib/personalRecords";
 import { weightUnit } from "@/lib/units";
 import { muscleDisplayName } from "@/lib/muscle";
+import { isWeightedExercise } from "@/lib/exerciseCatalog";
+import { recommendedStartWeight, type Profile } from "@/lib/weightRecommendation";
 
 export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
-  const { currentWorkout, setCurrentWorkout, finishWorkout, appendSetLogs, setLogs, preferences } = useApp();
+  const { currentWorkout, setCurrentWorkout, finishWorkout, appendSetLogs, setLogs, preferences, survey, user } = useApp();
   const [w, setW] = useState<Workout | null>(currentWorkout);
   const [idx, setIdx] = useState(0);
   const [startedAt] = useState(Date.now());
@@ -25,6 +27,14 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
   const unit = weightUnit(preferences.units);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const profile: Profile = {
+    bodyweightKg: survey.weightKg ?? user?.weightKg ?? null,
+    sex: survey.sex ?? user?.sex ?? null,
+    age: survey.age ?? user?.age ?? null,
+    level: survey.level,
+    units: preferences.units,
+  };
+
   // rest timer
   useEffect(() => {
     if (rest == null) return;
@@ -36,18 +46,50 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
   // scroll to top when switching exercises
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }, [idx]);
 
+  // On open, pre-fill a recommended starting weight (from the user's profile)
+  // for any weighted exercise whose sets haven't been given a weight yet.
+  useEffect(() => {
+    setW((prev) => {
+      if (!prev) return prev;
+      let changed = false;
+      const exercises = prev.exercises.map((e) => {
+        if (!isWeightedExercise(e.name)) return e;
+        if (!e.sets.every((s) => s.weight === 0)) return e;
+        const rec = recommendedStartWeight(e.name, profile);
+        if (!rec) return e;
+        changed = true;
+        return { ...e, sets: e.sets.map((s) => ({ ...s, weight: rec })) };
+      });
+      return changed ? { ...prev, exercises } : prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (!w) { onExit(); return null; }
 
   const totalSets = w.exercises.reduce((a, e) => a + e.sets.length, 0);
   const doneSets = w.exercises.reduce((a, e) => a + e.sets.filter((s) => s.isCompleted).length, 0);
   const last = w.exercises.length - 1;
   const ex = w.exercises[idx];
+  const weighted = isWeightedExercise(ex.name);
+  const recommended = weighted ? recommendedStartWeight(ex.name, profile) : null;
 
   const patchSet = (exId: string, setId: string, patch: Partial<ExerciseSet>) => {
     setW((prev) => prev && ({
       ...prev,
       exercises: prev.exercises.map((e) => e.id !== exId ? e : ({
         ...e, sets: e.sets.map((s) => s.id !== setId ? s : { ...s, ...patch }),
+      })),
+    }));
+  };
+
+  // Setting the first set's weight fills every set of the exercise; individual
+  // sets can then be adjusted from there.
+  const propagateWeight = (exId: string, weight: number) => {
+    setW((prev) => prev && ({
+      ...prev,
+      exercises: prev.exercises.map((e) => e.id !== exId ? e : ({
+        ...e, sets: e.sets.map((s) => ({ ...s, weight })),
       })),
     }));
   };
@@ -213,8 +255,13 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
         {/* sets */}
         <div className="flex items-center justify-between mt-6 mb-2 px-1">
           <span className="text-textFaint text-[12px] font-semibold uppercase tracking-wider">Log your sets</span>
-          <span className="text-textFaint text-[12px]">{unit} × reps</span>
+          <span className="text-textFaint text-[12px]">{weighted ? unit + " × reps" : "Bodyweight · reps"}</span>
         </div>
+        {weighted && (
+          <p className="text-textFaint text-[11.5px] mb-2.5 px-1 leading-snug">
+            {recommended ? `Suggested ${recommended} ${unit} from your profile — ` : ""}set the first set's weight and it fills all sets.
+          </p>
+        )}
         <div className="space-y-2.5">
           {ex.sets.map((s, i) => (
             <div key={s.id}
@@ -224,14 +271,19 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
                 ${s.isCompleted ? "bg-accentGreen text-deepGreen" : "bg-borderStrong text-textMuted"}`}>
                 {s.isWarmup ? "W" : i + 1}
               </span>
-              <div className="flex-1 grid grid-cols-2 gap-2">
-                <label className="relative">
-                  <input type="number" inputMode="decimal" value={s.weight || ""}
-                    onChange={(e) => patchSet(ex.id, s.id, { weight: Number(e.target.value) })}
-                    placeholder="0"
-                    className="w-full rounded-xl bg-bgPhone border border-borderStrong pl-3 pr-9 py-2.5 text-[16px] text-white outline-none focus:border-accentGreen transition" />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-textFaint text-[11px]">{unit}</span>
-                </label>
+              <div className={`flex-1 grid gap-2 ${weighted ? "grid-cols-2" : "grid-cols-1"}`}>
+                {weighted && (
+                  <label className="relative">
+                    <input type="number" inputMode="decimal" value={s.weight || ""}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        if (i === 0) propagateWeight(ex.id, v); else patchSet(ex.id, s.id, { weight: v });
+                      }}
+                      placeholder="0"
+                      className="w-full rounded-xl bg-bgPhone border border-borderStrong pl-3 pr-9 py-2.5 text-[16px] text-white outline-none focus:border-accentGreen transition" />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-textFaint text-[11px]">{unit}</span>
+                  </label>
+                )}
                 <label className="relative">
                   <input type="number" inputMode="numeric" value={s.reps || ""}
                     onChange={(e) => patchSet(ex.id, s.id, { reps: Number(e.target.value) })}
