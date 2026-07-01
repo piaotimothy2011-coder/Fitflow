@@ -6,6 +6,7 @@ import { SectionLabel } from "./ui";
 import { EXERCISE_CATALOG } from "@/lib/exerciseCatalog";
 import { setsFromPrescription, isTimed } from "@/lib/workoutGenerator";
 import { muscleDisplayName } from "@/lib/muscle";
+import { estimateWorkoutMinutes } from "@/lib/workoutEstimate";
 import { uuid, newSet, type Workout, type Exercise } from "@/lib/models";
 
 export default function WorkoutEditor({ onExit }: { onExit: () => void }) {
@@ -81,7 +82,7 @@ export default function WorkoutEditor({ onExit }: { onExit: () => void }) {
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 py-4">
-        <SectionLabel className="mb-2.5">{w.exercises.length} exercise{w.exercises.length === 1 ? "" : "s"}</SectionLabel>
+        <SectionLabel className="mb-2.5">{w.exercises.length} exercise{w.exercises.length === 1 ? "" : "s"} · ~{estimateWorkoutMinutes(w)} min</SectionLabel>
         <div className="space-y-2.5">
           {w.exercises.map((e, i) => (
             <div key={e.id} className="rounded-2xl bg-bgCard border border-border p-3.5">

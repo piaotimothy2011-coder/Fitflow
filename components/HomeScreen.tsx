@@ -11,6 +11,7 @@ import { SurveyCatalog, goalIcon } from "@/lib/surveyCatalog";
 import { buildWorkout, buildSmartPlan } from "@/lib/workoutGenerator";
 import { applyProgression } from "@/lib/progressionEngine";
 import { distanceDisplay, distanceUnitLabel, formatDuration, paceDisplay, paceUnitLabel } from "@/lib/runMetrics";
+import { estimateWorkoutMinutes } from "@/lib/workoutEstimate";
 
 function Ring({ done, total }: { done: number; total: number }) {
   const pct = total ? done / total : 0;
@@ -39,7 +40,7 @@ export default function HomeScreen({ onStart, onProfile, onRun, onEdit }:
   const muscles = workoutTargetedMuscles(currentWorkout).slice(0, 4).map((m) => muscleDisplayName[m]);
   const goalShort = SurveyCatalog.goalShortLabels[survey.goal] ?? survey.goal;
   const exCount = currentWorkout.exercises.length;
-  const minutes = currentWorkout.meta.match(/(\d+)\s*min/)?.[1];
+  const estMinutes = estimateWorkoutMinutes(currentWorkout, preferences.defaultRestSeconds);
   const totalSets = currentWorkout.exercises.reduce((a, e) => a + e.sets.length, 0);
   const doneSets = currentWorkout.exercises.reduce((a, e) => a + e.sets.filter((s) => s.isCompleted).length, 0);
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
@@ -104,7 +105,7 @@ export default function HomeScreen({ onStart, onProfile, onRun, onEdit }:
             <Ring done={doneSets} total={totalSets} />
           </div>
           <div className="flex flex-wrap gap-2 mt-4">
-            {minutes && <Pill icon="clock" text={`${minutes} min`} />}
+            <Pill icon="clock" text={`~${estMinutes} min`} />
             <Pill icon="strength" text={`${exCount} exercises`} />
             {muscles[0] && <Pill icon="flame" text={muscles.slice(0, 2).join(" · ")} />}
           </div>
@@ -149,7 +150,7 @@ export default function HomeScreen({ onStart, onProfile, onRun, onEdit }:
                   className={`shrink-0 w-[150px] rounded-2xl border p-3.5 text-left transition active:scale-[0.97] ${active ? "border-accentGreen bg-accentGreen/10" : "border-borderStrong bg-bgCard hover:border-white/20"}`}>
                   <div className={`text-[11px] font-bold uppercase tracking-wider ${active ? "text-accentGreen" : "text-textFaint"}`}>Day {i + 1}{active ? " · today" : ""}</div>
                   <div className="text-white text-[14px] font-semibold mt-1 truncate">{d.workoutName}</div>
-                  <div className="text-textFaint text-[11px] mt-1">{d.exercises.length} exercises</div>
+                  <div className="text-textFaint text-[11px] mt-1">{d.exercises.length} exercises · ~{estimateWorkoutMinutes(d, preferences.defaultRestSeconds)} min</div>
                 </button>
               );
             })}
