@@ -18,11 +18,11 @@ type MotionState = "idle" | "active" | "denied" | "unsupported";
 const MAX_ACCURACY_M = 35;
 const MIN_STEP_M = 1.2;
 // Motion (accelerometer) footfall detection.
-const STEP_ACCEL_THRESH = 2.2; // m/s^2 deviation from baseline that marks a footfall
-const STEP_MIN_INTERVAL = 260; // ms debounce between counted steps
-const MOTION_WINDOW = 3000;    // ms — running motion considered "live" within this
-const VEHICLE_SPEED = 2.5;     // m/s (~9 km/h) — above brisk walking
-const VEHICLE_GRACE = 6000;    // ms of fast movement with no footfalls before flagging a vehicle
+const STEP_ACCEL_THRESH = 2.2;
+const STEP_MIN_INTERVAL = 260;
+const MOTION_WINDOW = 3000;
+const VEHICLE_SPEED = 2.5;
+const VEHICLE_GRACE = 6000;
 
 export default function OutdoorRun({ onExit }: { onExit: () => void }) {
   const { preferences, survey, user, addRun } = useApp();
@@ -31,17 +31,16 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
   const [phase, setPhase] = useState<Phase>("ready");
   const [gps, setGps] = useState<GpsState>("idle");
   const [motion, setMotion] = useState<MotionState>("idle");
-  const [cadence, setCadence] = useState(0);   // steps per minute
+  const [cadence, setCadence] = useState(0);
   const [vehicle, setVehicle] = useState(false);
-  const [elapsed, setElapsed] = useState(0);   // seconds, active only
+  const [elapsed, setElapsed] = useState(0);
   const [meters, setMeters] = useState(0);
-  const [speedMps, setSpeedMps] = useState(0); // current speed
+  const [maxSpeed, setMaxSpeed] = useState(0);
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const [saved, setSaved] = useState<RunLog | null>(null);
 
   const weightKg = survey.weightKg ?? user?.weightKg ?? 70;
 
-  // refs used inside geolocation / motion / interval callbacks
   const watchId = useRef<number | null>(null);
   const tickId = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastPoint = useRef<{ lat: number; lng: number; t: number } | null>(null);
@@ -62,7 +61,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
   const gpsSupported = typeof navigator !== "undefined" && "geolocation" in navigator;
   const motionSupported = typeof window !== "undefined" && typeof window.DeviceMotionEvent !== "undefined";
 
-  // Warm up GPS on mount so we can prompt for permission and show "ready".
   useEffect(() => {
     if (!gpsSupported) { setGps("unsupported"); return; }
     setGps("acquiring");
@@ -74,7 +72,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
     if (!motionSupported) setMotion("unsupported");
   }, [gpsSupported, motionSupported]);
 
-  // ---- accelerometer: count footfalls to confirm the user is on foot ----
   const onMotion = useCallback((e: DeviceMotionEvent) => {
     const a = e.accelerationIncludingGravity;
     if (!a) return;
@@ -125,7 +122,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
     if (tickId.current != null) { clearInterval(tickId.current); tickId.current = null; }
   }, []);
 
-  // cleanup on unmount
   useEffect(() => () => { stopWatch(); stopTick(); stopMotion(); }, [stopWatch, stopTick, stopMotion]);
 
   const onPosition = useCallback((pos: GeolocationPosition) => {
@@ -133,31 +129,30 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
     setAccuracy(acc ?? null);
     setGps("tracking");
     if (typeof speed === "number" && speed >= 0) {
-      setSpeedMps(speed); speedRef.current = speed;
-      if (speed > maxSpeedRef.current) maxSpeedRef.current = speed;
+      speedRef.current = speed;
+      if (speed > maxSpeedRef.current) { maxSpeedRef.current = speed; setMaxSpeed(speed); }
     }
 
     if (phaseRef.current !== "running") {
       lastPoint.current = { lat: latitude, lng: longitude, t: pos.timestamp };
       return;
     }
-    if (acc != null && acc > MAX_ACCURACY_M) return; // too noisy to trust
+    if (acc != null && acc > MAX_ACCURACY_M) return;
     const prev = lastPoint.current;
     lastPoint.current = { lat: latitude, lng: longitude, t: pos.timestamp };
     if (!prev) { pathRef.current.push({ lat: latitude, lng: longitude }); return; }
 
     const step = haversineMeters(prev.lat, prev.lng, latitude, longitude);
-    if (step < MIN_STEP_M) return; // ignore GPS jitter while standing still
+    if (step < MIN_STEP_M) return;
 
     if (speed == null || speed < 0) {
       const dt = (pos.timestamp - prev.t) / 1000;
       if (dt > 0) {
-        const v = step / dt; setSpeedMps(v); speedRef.current = v;
-        if (v > maxSpeedRef.current) maxSpeedRef.current = v;
+        const v = step / dt; speedRef.current = v;
+        if (v > maxSpeedRef.current) { maxSpeedRef.current = v; setMaxSpeed(v); }
       }
     }
 
-    // Don't count distance while a vehicle is suspected (moving fast, no footfalls).
     if (vehicleRef.current) return;
     setMeters((m) => m + step);
     pathRef.current.push({ lat: latitude, lng: longitude });
@@ -178,14 +173,11 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
     stopTick();
     tickId.current = setInterval(() => {
       if (phaseRef.current === "running") setElapsed((e) => e + 1);
-
-      // Evaluate motion each second (only when the sensor is active).
       if (!motionActiveRef.current) return;
       const now = performance.now();
       stepTimes.current = stepTimes.current.filter((t) => now - t < 20000);
-      setCadence(Math.round(stepTimes.current.length * 3)); // steps/min over a 20s window
+      setCadence(Math.round(stepTimes.current.length * 3));
       const moving = now - lastMotionAt.current < MOTION_WINDOW;
-
       if (phaseRef.current === "running" && speedRef.current > VEHICLE_SPEED && !moving) {
         if (noMotionSince.current == null) noMotionSince.current = now;
         else if (now - noMotionSince.current > VEHICLE_GRACE) {
@@ -201,13 +193,12 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
   const start = () => {
     setPhase("running");
     lastPoint.current = null;
-    setSpeedMps(0);
     speedRef.current = 0;
     void requestMotion();
     beginWatch();
     startTick();
   };
-  const pause = () => { setPhase("paused"); setSpeedMps(0); speedRef.current = 0; };
+  const pause = () => { setPhase("paused"); speedRef.current = 0; };
   const resume = () => { setPhase("running"); lastPoint.current = null; };
 
   const finish = () => {
@@ -237,7 +228,7 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
     setPhase("ready");
     setElapsed(0);
     setMeters(0);
-    setSpeedMps(0);
+    setMaxSpeed(0);
     speedRef.current = 0;
     maxSpeedRef.current = 0;
     stepTotalRef.current = 0;
@@ -254,7 +245,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
   };
 
   const calories = estimateCalories(meters, weightKg);
-  const displaySpeed = phase === "running" ? speedMps : (phase === "finished" && elapsed > 0 ? meters / elapsed : 0);
 
   const phaseLabel =
     phase === "ready" ? "Ready" : phase === "running" ? "Running" :
@@ -305,7 +295,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
 
   return (
     <div className="relative min-h-screen flex flex-col">
-      {/* header */}
       <div className="px-6 pt-8 pb-4 flex items-center justify-between">
         <button onClick={onExit} aria-label="Close"
           className="w-9 h-9 rounded-full bg-bgCard border border-border flex items-center justify-center text-textMuted hover:text-white transition active:scale-95">
@@ -318,7 +307,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-4">
-        {/* timer hero */}
         <div className={`rounded-[24px] p-6 text-center transition-colors ${vehicle ? "bg-amber-100" : "bg-mintBg"}`}>
           <div className="text-deepGreen/60 text-[12px] font-bold uppercase tracking-[0.16em]">{phaseLabel}</div>
           <div className="font-display text-[64px] leading-[1.05] text-deepGreen tabular-nums mt-1">
@@ -326,15 +314,13 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
           </div>
         </div>
 
-        {/* stat grid */}
         <div className="grid grid-cols-2 gap-2.5 mt-3">
           <Stat label="Distance" value={distanceDisplay(meters, units)} unit={distanceUnitLabel(units)} />
           <Stat label="Pace" value={paceDisplay(elapsed, meters, units)} unit={paceUnitLabel(units)} />
-          <Stat label="Speed" value={speedDisplay(displaySpeed, units)} unit={speedUnitLabel(units)} />
+          <Stat label="Top speed" value={speedDisplay(maxSpeed, units)} unit={speedUnitLabel(units)} />
           <Stat label="Calories" value={`${calories}`} unit="kcal" />
         </div>
 
-        {/* route map once finished */}
         {phase === "finished" && (saved?.path?.length ?? 0) > 1 && (
           <div className="mt-3">
             <div className="text-textFaint text-[11px] uppercase tracking-wider mb-2 px-1">Your route</div>
@@ -342,7 +328,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
           </div>
         )}
 
-        {/* status chips */}
         {phase !== "finished" && (
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <Chip text={gpsChip.text} ok={gpsChip.ok} />
@@ -352,7 +337,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
         <p className={`text-[13px] mt-3 leading-snug ${vehicle ? "text-amber-300" : "text-textFaint"}`}>{helper}</p>
       </div>
 
-      {/* controls */}
       <div className="px-6 py-5 sticky bottom-0 bg-bgPhone/95 backdrop-blur border-t border-border">
         <div className="flex items-center gap-3">
           {phase === "ready" && (
@@ -361,7 +345,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
               <Icon name="play" size={18} /> Start
             </button>
           )}
-
           {phase === "running" && (
             <>
               <button onClick={pause}
@@ -374,7 +357,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
               </button>
             </>
           )}
-
           {phase === "paused" && (
             <>
               <button onClick={resume}
@@ -387,7 +369,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
               </button>
             </>
           )}
-
           {phase === "finished" && (
             <>
               <button onClick={reset}
@@ -400,7 +381,6 @@ export default function OutdoorRun({ onExit }: { onExit: () => void }) {
               </button>
             </>
           )}
-
           {(phase === "running" || phase === "paused") && (
             <button onClick={reset} aria-label="Reset"
               className="w-14 shrink-0 rounded-2xl border border-borderStrong text-textMuted hover:text-white py-4 flex items-center justify-center active:scale-[0.98] transition">

@@ -12,7 +12,6 @@ import {
 export default function RunDetailSheet({ run, onClose }: { run: RunLog; onClose: () => void }) {
   const { preferences } = useApp();
   const units = preferences.units;
-  const avgSpeed = run.durationSeconds > 0 ? run.distanceMeters / run.durationSeconds : 0;
   const topSpeed = run.maxSpeedMps ?? 0;
   const cadence = run.steps && run.durationSeconds > 0 ? Math.round((run.steps / run.durationSeconds) * 60) : 0;
   const d = new Date(run.date);
@@ -62,7 +61,6 @@ export default function RunDetailSheet({ run, onClose }: { run: RunLog; onClose:
             <Stat label="Time" value={formatDuration(run.durationSeconds)} />
             <Stat label="Avg pace" value={paceDisplay(run.durationSeconds, run.distanceMeters, units)} unit={paceUnitLabel(units)} />
             <Stat label="Top speed" value={speedDisplay(topSpeed, units)} unit={speedUnitLabel(units)} />
-            <Stat label="Avg speed" value={speedDisplay(avgSpeed, units)} unit={speedUnitLabel(units)} />
             <Stat label="Calories" value={`${run.calories}`} unit="kcal" />
             {cadence > 0 && <Stat label="Avg cadence" value={`${cadence}`} unit="spm" />}
           </div>

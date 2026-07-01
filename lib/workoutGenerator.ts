@@ -55,7 +55,7 @@ const TIMED_KEYWORDS = [
   "plank", "hang", "stretch", "pose", "breathing", "flow", "hold", "wall sit",
   "jogging", "rope", "knees", "intervals", "bike", "carry", "salutation", "slides", "climber",
 ];
-function isTimed(name: string): boolean {
+export function isTimed(name: string): boolean {
   const lower = name.toLowerCase();
   return TIMED_KEYWORDS.some((k) => lower.includes(k));
 }

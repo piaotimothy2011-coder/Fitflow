@@ -4,7 +4,7 @@ import { useApp } from "./AppState";
 import { Icon } from "./icons";
 import { SectionLabel } from "./ui";
 import { EXERCISE_CATALOG } from "@/lib/exerciseCatalog";
-import { setsFromPrescription } from "@/lib/workoutGenerator";
+import { setsFromPrescription, isTimed } from "@/lib/workoutGenerator";
 import { muscleDisplayName } from "@/lib/muscle";
 import { uuid, newSet, type Workout, type Exercise } from "@/lib/models";
 
@@ -45,7 +45,8 @@ export default function WorkoutEditor({ onExit }: { onExit: () => void }) {
   const addExercise = (name: string) => {
     const ce = EXERCISE_CATALOG.find((c) => c.name === name);
     if (!ce) return;
-    const detail = "3 x 10 reps";
+    const timedAdd = isTimed(ce.name) || ce.styles.includes("mobility") || ce.styles.includes("mindful");
+    const detail = timedAdd ? "3 x 45 sec" : "3 x 10 reps";
     const ex: Exercise = {
       id: uuid(), name: ce.name, detail, tip: ce.tip,
       sets: setsFromPrescription(detail),

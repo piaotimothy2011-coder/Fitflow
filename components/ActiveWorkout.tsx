@@ -11,6 +11,7 @@ import { isNew1RMPR } from "@/lib/personalRecords";
 import { weightUnit } from "@/lib/units";
 import { muscleDisplayName } from "@/lib/muscle";
 import { isWeightedExercise } from "@/lib/exerciseCatalog";
+import { isTimed } from "@/lib/workoutGenerator";
 import { recommendedStartWeight, type Profile } from "@/lib/weightRecommendation";
 
 export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
@@ -22,10 +23,12 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
   const [pr, setPr] = useState<string | null>(null);
   const [detail, setDetail] = useState<Exercise | null>(null);
   const [summary, setSummary] = useState(false);
+  const [timer, setTimer] = useState<{ exId: string; setId: string; remaining: number } | null>(null);
   const pendingLogs = useRef<SetLog[]>([]);
   const priorLogs = useRef<SetLog[]>([...setLogs]);
   const unit = weightUnit(preferences.units);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const completeRef = useRef<(exId: string, setId: string) => void>(() => {});
 
   const profile: Profile = {
     bodyweightKg: survey.weightKg ?? user?.weightKg ?? null,
@@ -45,6 +48,21 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
 
   // scroll to top when switching exercises
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }, [idx]);
+
+  // reset any running set-timer when changing exercise
+  useEffect(() => { setTimer(null); }, [idx]);
+
+  // countdown for timed sets (stretches / holds) — auto-completes at zero
+  useEffect(() => {
+    if (!timer) return;
+    if (timer.remaining <= 0) {
+      completeRef.current(timer.exId, timer.setId);
+      setTimer(null);
+      return;
+    }
+    const id = setTimeout(() => setTimer((t) => (t ? { ...t, remaining: t.remaining - 1 } : null)), 1000);
+    return () => clearTimeout(id);
+  }, [timer]);
 
   // On open, pre-fill a recommended starting weight (from the user's profile)
   // for any weighted exercise whose sets haven't been given a weight yet.
@@ -71,7 +89,8 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
   const doneSets = w.exercises.reduce((a, e) => a + e.sets.filter((s) => s.isCompleted).length, 0);
   const last = w.exercises.length - 1;
   const ex = w.exercises[idx];
-  const weighted = isWeightedExercise(ex.name);
+  const timed = /\d+\s*sec/i.test(ex.detail) || isTimed(ex.name);
+  const weighted = !timed && isWeightedExercise(ex.name);
   const recommended = weighted ? recommendedStartWeight(ex.name, profile) : null;
 
   const patchSet = (exId: string, setId: string, patch: Partial<ExerciseSet>) => {
@@ -114,6 +133,12 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
       pendingLogs.current = [log, ...pendingLogs.current];
       setRest(preferences.defaultRestSeconds);
     }
+  };
+  completeRef.current = toggleComplete;
+
+  const mmss = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.max(0, s) % 60).padStart(2, "0")}`;
+  const startOrStop = (exId: string, setId: string, seconds: number) => {
+    setTimer((t) => (t && t.setId === setId ? null : { exId, setId, remaining: Math.max(1, seconds || 30) }));
   };
 
   const finish = () => {
@@ -255,7 +280,7 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
         {/* sets */}
         <div className="flex items-center justify-between mt-6 mb-2 px-1">
           <span className="text-textFaint text-[12px] font-semibold uppercase tracking-wider">Log your sets</span>
-          <span className="text-textFaint text-[12px]">{weighted ? unit + " × reps" : "Bodyweight · reps"}</span>
+          <span className="text-textFaint text-[12px]">{timed ? "Hold · seconds" : weighted ? unit + " × reps" : "Bodyweight · reps"}</span>
         </div>
         {weighted && (
           <p className="text-textFaint text-[11.5px] mb-2.5 px-1 leading-snug">
@@ -271,27 +296,46 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
                 ${s.isCompleted ? "bg-accentGreen text-deepGreen" : "bg-borderStrong text-textMuted"}`}>
                 {s.isWarmup ? "W" : i + 1}
               </span>
-              <div className={`flex-1 grid gap-2 ${weighted ? "grid-cols-2" : "grid-cols-1"}`}>
-                {weighted && (
-                  <label className="relative">
-                    <input type="number" inputMode="decimal" value={s.weight || ""}
-                      onChange={(e) => {
-                        const v = Number(e.target.value);
-                        if (i === 0) propagateWeight(ex.id, v); else patchSet(ex.id, s.id, { weight: v });
-                      }}
+              {timed ? (
+                <div className="flex-1 flex items-center gap-2">
+                  <label className="relative flex-1">
+                    <input type="number" inputMode="numeric" value={s.reps || ""}
+                      onChange={(e) => patchSet(ex.id, s.id, { reps: Number(e.target.value) })}
                       placeholder="0"
-                      className="w-full rounded-xl bg-bgPhone border border-borderStrong pl-3 pr-9 py-2.5 text-[16px] text-white outline-none focus:border-accentGreen transition" />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-textFaint text-[11px]">{unit}</span>
+                      className="w-full rounded-xl bg-bgPhone border border-borderStrong pl-3 pr-11 py-2.5 text-[16px] text-white outline-none focus:border-accentGreen transition" />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-textFaint text-[11px]">sec</span>
                   </label>
-                )}
-                <label className="relative">
-                  <input type="number" inputMode="numeric" value={s.reps || ""}
-                    onChange={(e) => patchSet(ex.id, s.id, { reps: Number(e.target.value) })}
-                    placeholder="0"
-                    className="w-full rounded-xl bg-bgPhone border border-borderStrong pl-3 pr-11 py-2.5 text-[16px] text-white outline-none focus:border-accentGreen transition" />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-textFaint text-[11px]">reps</span>
-                </label>
-              </div>
+                  <button onClick={() => startOrStop(ex.id, s.id, s.reps)} disabled={s.isCompleted} aria-label="Start timer"
+                    className={`h-11 min-w-[68px] px-3 rounded-xl flex items-center justify-center gap-1.5 tabular-nums transition active:scale-95 disabled:opacity-40
+                      ${timer?.setId === s.id ? "bg-accentGreen text-deepGreen" : "bg-bgPhone border border-borderStrong text-white"}`}>
+                    {timer?.setId === s.id
+                      ? <span className="font-display text-[18px]">{mmss(timer.remaining)}</span>
+                      : (<><Icon name="play" size={15} /><span className="text-[13px] font-semibold">Go</span></>)}
+                  </button>
+                </div>
+              ) : (
+                <div className={`flex-1 grid gap-2 ${weighted ? "grid-cols-2" : "grid-cols-1"}`}>
+                  {weighted && (
+                    <label className="relative">
+                      <input type="number" inputMode="decimal" value={s.weight || ""}
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          if (i === 0) propagateWeight(ex.id, v); else patchSet(ex.id, s.id, { weight: v });
+                        }}
+                        placeholder="0"
+                        className="w-full rounded-xl bg-bgPhone border border-borderStrong pl-3 pr-9 py-2.5 text-[16px] text-white outline-none focus:border-accentGreen transition" />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-textFaint text-[11px]">{unit}</span>
+                    </label>
+                  )}
+                  <label className="relative">
+                    <input type="number" inputMode="numeric" value={s.reps || ""}
+                      onChange={(e) => patchSet(ex.id, s.id, { reps: Number(e.target.value) })}
+                      placeholder="0"
+                      className="w-full rounded-xl bg-bgPhone border border-borderStrong pl-3 pr-11 py-2.5 text-[16px] text-white outline-none focus:border-accentGreen transition" />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-textFaint text-[11px]">reps</span>
+                  </label>
+                </div>
+              )}
               <button onClick={() => toggleComplete(ex.id, s.id)} aria-label="Complete set"
                 className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition active:scale-90
                   ${s.isCompleted ? "bg-accentGreen text-deepGreen" : "bg-bgPhone border border-borderStrong text-textFaint hover:border-accentGreen/60"}`}>
