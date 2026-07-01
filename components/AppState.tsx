@@ -20,6 +20,7 @@ export interface AuthResult {
 interface AppStateValue {
   hydrated: boolean;
   cloudEnabled: boolean;
+  authRecovery: boolean;
   route: Route;
   user: User | null;
   survey: Survey;
@@ -37,6 +38,8 @@ interface AppStateValue {
   signUp: (name: string, email?: string) => void;               // local-only mode
   signUpEmail: (name: string, email: string, password: string) => Promise<AuthResult>;
   signInEmail: (email: string, password: string) => Promise<AuthResult>;
+  resetPassword: (email: string) => Promise<AuthResult>;
+  updatePassword: (password: string) => Promise<AuthResult>;
   signOut: () => void;
   setSurvey: (s: Survey) => void;
   setCurrentWorkout: (w: Workout | null) => void;
@@ -69,6 +72,7 @@ function computeRoute(user: User | null, currentWorkout: Workout | null): Route 
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
+  const [authRecovery, setAuthRecovery] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [survey, setSurveyState] = useState<Survey>(emptySurvey());
   const [currentWorkout, setCurrentWorkoutState] = useState<Workout | null>(null);
@@ -137,7 +141,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Cloud mode: restore session if present.
+    // Cloud mode: watch for password-recovery links, then restore session.
+    supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setAuthRecovery(true);
+    });
     (async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -188,6 +195,22 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     if (error) return { error: error.message };
     if (!data.user) return { error: "Sign in failed." };
     await onSignedIn(data.user.id);
+    return {};
+  }, [onSignedIn]);
+
+  const resetPassword = useCallback(async (email: string): Promise<AuthResult> => {
+    if (!supabase) return { error: "Cloud not configured." };
+    const redirectTo = typeof window !== "undefined" ? window.location.origin : undefined;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    return error ? { error: error.message } : {};
+  }, []);
+
+  const updatePassword = useCallback(async (password: string): Promise<AuthResult> => {
+    if (!supabase) return { error: "Cloud not configured." };
+    const { data, error } = await supabase.auth.updateUser({ password });
+    if (error) return { error: error.message };
+    setAuthRecovery(false);
+    if (data.user) await onSignedIn(data.user.id);
     return {};
   }, [onSignedIn]);
 
@@ -293,9 +316,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value: AppStateValue = {
-    hydrated, cloudEnabled: supabaseEnabled, route, user, survey, currentWorkout, program, programIndex,
+    hydrated, cloudEnabled: supabaseEnabled, authRecovery, route, user, survey, currentWorkout, program, programIndex,
     logs, setLogs, meals, water, templates, runs, preferences,
-    signUp, signUpEmail, signInEmail, signOut, setSurvey, setCurrentWorkout, installProgram, startSession,
+    signUp, signUpEmail, signInEmail, resetPassword, updatePassword, signOut, setSurvey, setCurrentWorkout, installProgram, startSession,
     finishWorkout, appendSetLogs, addMeal, deleteMeal, addWater, saveTemplate,
     deleteTemplate, addRun, setPreferences, goToSurvey, resetAll,
   };

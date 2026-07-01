@@ -29,7 +29,7 @@ function Background() {
 }
 
 export default function WelcomeScreen() {
-  const { signUp, signUpEmail, signInEmail, cloudEnabled } = useApp();
+  const { signUp, signUpEmail, signInEmail, resetPassword, cloudEnabled } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [name, setName] = useState("");
@@ -39,13 +39,30 @@ export default function WelcomeScreen() {
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const validEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
   async function handleCloudSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null); setInfo(null); setBusy(true);
+    setError(null); setInfo(null);
+    if (!validEmail(email.trim())) { setError("Please enter a valid email address."); return; }
+    setBusy(true);
     try {
       const res = mode === "signup" ? await signUpEmail(name, email.trim(), password) : await signInEmail(email.trim(), password);
       if (res.error) setError(res.error);
-      else if (res.needsConfirm) setInfo("Check your email to confirm your account, then sign in.");
+      else if (res.needsConfirm) setInfo("Almost there — check your email and tap the confirmation link to verify it's you, then sign in.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally { setBusy(false); }
+  }
+
+  async function handleForgot() {
+    setError(null); setInfo(null);
+    if (!validEmail(email.trim())) { setError("Enter your email above first, then tap Forgot password."); return; }
+    setBusy(true);
+    try {
+      const res = await resetPassword(email.trim());
+      if (res.error) setError(res.error);
+      else setInfo("Password reset link sent — check your email to set a new password.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally { setBusy(false); }
@@ -111,6 +128,12 @@ export default function WelcomeScreen() {
                   className="w-full text-center text-textMuted text-[13px] py-1">
                   {mode === "signup" ? "Have an account? Sign in" : "New here? Create an account"}
                 </button>
+                {mode === "signin" && (
+                  <button type="button" onClick={handleForgot} disabled={busy}
+                    className="w-full text-center text-textFaint text-[13px] py-1 hover:text-white transition">
+                    Forgot password?
+                  </button>
+                )}
                 <GhostButton onClick={back}>Back</GhostButton>
               </form>
             ) : (
