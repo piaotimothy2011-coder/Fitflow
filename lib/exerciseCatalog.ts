@@ -181,6 +181,16 @@ export function isWeightedExercise(name: string): boolean {
   return e.equipment.some((q) => LOAD_EQUIPMENT.has(q));
 }
 
+// Equipment the user must own for weights to be relevant at all. If they train
+// with no weights (e.g. "No equipment"), we never show a weight input or a
+// weight recommendation.
+const USER_WEIGHT_EQUIPMENT = new Set([
+  "Dumbbells", "Kettlebells", "Barbell and rack", "Cable machine", "Full gym",
+]);
+export function userUsesWeights(equipment: string[]): boolean {
+  return equipment.some((q) => USER_WEIGHT_EQUIPMENT.has(q));
+}
+
 export function filterCatalog(
   equipment: string[], focus: string[], level: FitnessLevel, style: TrainingStyle
 ): CatalogExercise[] {

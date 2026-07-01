@@ -25,6 +25,17 @@ export default function SurveyFlow() {
   const toggle = (arr: string[], v: string): string[] =>
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 
+  // "No equipment" is exclusive: choosing it clears everything else, and
+  // choosing any real equipment removes "No equipment".
+  const selectEquipment = (e: string) => {
+    const NONE = "No equipment";
+    if (e === NONE) {
+      update({ equipment: draft.equipment.includes(NONE) ? [] : [NONE] });
+    } else {
+      update({ equipment: toggle(draft.equipment.filter((x) => x !== NONE), e) });
+    }
+  };
+
   const canNext = () => (step === 0 ? draft.goal !== "" : step === 1 ? draft.level !== "" : true);
 
   const build = () => {
@@ -91,7 +102,7 @@ export default function SurveyFlow() {
           <Section title="What equipment do you have?" subtitle="Pick everything you can train with — it filters every exercise.">
             <div className="grid grid-cols-2 gap-2.5">
               {SurveyCatalog.equipment.map((e) => (
-                <SelChip key={e} label={e} selected={draft.equipment.includes(e)} onClick={() => update({ equipment: toggle(draft.equipment, e) })} />
+                <SelChip key={e} label={e} selected={draft.equipment.includes(e)} onClick={() => selectEquipment(e)} />
               ))}
             </div>
           </Section>

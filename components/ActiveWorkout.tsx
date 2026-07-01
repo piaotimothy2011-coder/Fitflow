@@ -10,7 +10,7 @@ import {
 import { isNew1RMPR } from "@/lib/personalRecords";
 import { weightUnit } from "@/lib/units";
 import { muscleDisplayName } from "@/lib/muscle";
-import { isWeightedExercise } from "@/lib/exerciseCatalog";
+import { isWeightedExercise, userUsesWeights } from "@/lib/exerciseCatalog";
 import { isTimed } from "@/lib/workoutGenerator";
 import { recommendedStartWeight, type Profile } from "@/lib/weightRecommendation";
 
@@ -37,6 +37,7 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
     level: survey.level,
     units: preferences.units,
   };
+  const usesWeights = userUsesWeights(survey.equipment);
 
   // rest timer
   useEffect(() => {
@@ -71,7 +72,7 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
       if (!prev) return prev;
       let changed = false;
       const exercises = prev.exercises.map((e) => {
-        if (!isWeightedExercise(e.name)) return e;
+        if (!usesWeights || !isWeightedExercise(e.name)) return e;
         if (!e.sets.every((s) => s.weight === 0)) return e;
         const rec = recommendedStartWeight(e.name, profile);
         if (!rec) return e;
@@ -90,7 +91,7 @@ export default function ActiveWorkout({ onExit }: { onExit: () => void }) {
   const last = w.exercises.length - 1;
   const ex = w.exercises[idx];
   const timed = /\d+\s*sec/i.test(ex.detail) || isTimed(ex.name);
-  const weighted = !timed && isWeightedExercise(ex.name);
+  const weighted = !timed && usesWeights && isWeightedExercise(ex.name);
   const recommended = weighted ? recommendedStartWeight(ex.name, profile) : null;
 
   const patchSet = (exId: string, setId: string, patch: Partial<ExerciseSet>) => {

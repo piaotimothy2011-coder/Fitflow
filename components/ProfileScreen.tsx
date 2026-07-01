@@ -2,7 +2,8 @@
 import { useApp } from "./AppState";
 import { Chip, SectionLabel } from "./ui";
 import { Icon } from "./icons";
-import { userInitials } from "@/lib/models";
+import { userInitials, type BiologicalSex } from "@/lib/models";
+import { weightUnit, weightToDisplay, weightFromDisplay, heightToDisplay, heightFromDisplay } from "@/lib/units";
 
 export default function ProfileScreen() {
   const app = useApp();
@@ -11,6 +12,11 @@ export default function ProfileScreen() {
 
   const setUnits = (units: "metric" | "imperial") => app.setPreferences({ ...prefs, units });
   const setRest = (defaultRestSeconds: number) => app.setPreferences({ ...prefs, defaultRestSeconds });
+
+  const survey = app.survey;
+  const units = prefs.units;
+  const patchSurvey = (patch: Partial<typeof survey>) => app.setSurvey({ ...survey, ...patch });
+  const heightUnit = units === "metric" ? "cm" : "in";
 
   return (
     <div className="px-6 pt-9">
@@ -32,6 +38,43 @@ export default function ProfileScreen() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* personal details */}
+      <div className="rounded-2xl bg-bgCard border border-border p-5 mb-3">
+        <SectionLabel className="mb-3">Personal details</SectionLabel>
+        <div className="grid grid-cols-2 gap-2.5">
+          <label>
+            <span className="block text-textFaint text-[11px] mb-1.5">Weight ({weightUnit(units)})</span>
+            <input type="number" inputMode="decimal" placeholder="—"
+              value={survey.weightKg != null ? Math.round(weightToDisplay(survey.weightKg, units)) : ""}
+              onChange={(e) => patchSurvey({ weightKg: e.target.value === "" ? null : weightFromDisplay(Number(e.target.value), units) })}
+              className="w-full rounded-xl bg-bgPhone border border-borderStrong px-3 py-2.5 text-[16px] text-white outline-none focus:border-accentGreen transition" />
+          </label>
+          <label>
+            <span className="block text-textFaint text-[11px] mb-1.5">Height ({heightUnit})</span>
+            <input type="number" inputMode="decimal" placeholder="—"
+              value={survey.heightCm != null ? Math.round(heightToDisplay(survey.heightCm, units)) : ""}
+              onChange={(e) => patchSurvey({ heightCm: e.target.value === "" ? null : heightFromDisplay(Number(e.target.value), units) })}
+              className="w-full rounded-xl bg-bgPhone border border-borderStrong px-3 py-2.5 text-[16px] text-white outline-none focus:border-accentGreen transition" />
+          </label>
+          <label>
+            <span className="block text-textFaint text-[11px] mb-1.5">Age</span>
+            <input type="number" inputMode="numeric" placeholder="—"
+              value={survey.age ?? ""}
+              onChange={(e) => patchSurvey({ age: e.target.value === "" ? null : Number(e.target.value) })}
+              className="w-full rounded-xl bg-bgPhone border border-borderStrong px-3 py-2.5 text-[16px] text-white outline-none focus:border-accentGreen transition" />
+          </label>
+        </div>
+        <div className="mt-3">
+          <span className="block text-textFaint text-[11px] mb-1.5">Sex</span>
+          <div className="flex flex-wrap gap-2">
+            {(["male", "female", "other"] as BiologicalSex[]).map((s) => (
+              <Chip key={s} label={s[0].toUpperCase() + s.slice(1)} selected={survey.sex === s} onClick={() => patchSurvey({ sex: s })} />
+            ))}
+          </div>
+        </div>
+        <p className="text-textFaint text-[11.5px] mt-3 leading-snug">Used to tailor calorie and starting-weight estimates.</p>
       </div>
 
       <div className="rounded-2xl bg-bgCard border border-border p-5 mb-3">
