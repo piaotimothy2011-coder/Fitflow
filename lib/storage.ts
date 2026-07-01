@@ -4,7 +4,7 @@
 // up to the cloud. With no pusher registered the app is pure-local as before.
 import {
   type Survey, type Workout, type WorkoutLog, type User, type UserPreferences,
-  type MealEntry, type WaterEntry, type SetLog, type WorkoutTemplate,
+  type MealEntry, type WaterEntry, type SetLog, type WorkoutTemplate, type RunLog,
   defaultPreferences,
 } from "./models";
 
@@ -18,6 +18,7 @@ const KEYS = {
   water: "ff.water",
   setLogs: "ff.setLogs",
   templates: "ff.templates",
+  runs: "ff.runs",
   program: "ff.program",
   programIndex: "ff.programIndex",
   auth: "ff.isAuthenticated",
@@ -95,6 +96,9 @@ export const Storage = {
 
   loadTemplates: () => read<WorkoutTemplate[]>(KEYS.templates, []),
   saveTemplates: (t: WorkoutTemplate[]) => write(KEYS.templates, t),
+
+  loadRuns: () => read<RunLog[]>(KEYS.runs, []),
+  saveRuns: (r: RunLog[]) => write(KEYS.runs, r),
 
   loadProgram: () => read<Workout[]>(KEYS.program, []),
   saveProgram: (p: Workout[]) => write(KEYS.program, p),

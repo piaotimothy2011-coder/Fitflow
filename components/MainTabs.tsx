@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useApp } from "./AppState";
 import HomeScreen from "./HomeScreen";
 import LibraryScreen from "./LibraryScreen";
+import OutdoorRun from "./OutdoorRun";
 import ActiveWorkout from "./ActiveWorkout";
 import ProgressScreen from "./ProgressScreen";
 import DietScreen from "./DietScreen";
@@ -10,8 +11,10 @@ import ProfileScreen from "./ProfileScreen";
 import { Icon, type IconName } from "./icons";
 import Ambient from "./Ambient";
 
-type Tab = "home" | "library" | "diet" | "progress" | "profile";
+type Tab = "home" | "library" | "run" | "diet" | "progress" | "profile";
 
+// Note: "run" is a hidden route reached from the Home "Run Plan" card, not a
+// bottom-nav tab, so the tracker gets the full screen while you run.
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: "home", label: "Home", icon: "today" },
   { id: "library", label: "Library", icon: "library" },
@@ -29,11 +32,16 @@ export default function MainTabs() {
     return <ActiveWorkout onExit={() => setTraining(false)} />;
   }
 
+  // Run tracker takes over the full screen (no bottom nav) while active.
+  if (tab === "run") {
+    return <OutdoorRun onExit={() => setTab("home")} />;
+  }
+
   return (
     <div className="relative min-h-screen flex flex-col">
       <Ambient />
       <div className="relative z-10 flex-1 overflow-y-auto no-scrollbar pb-24">
-        {tab === "home" && <HomeScreen onStart={() => setTraining(true)} onProfile={() => setTab("profile")} onLibrary={() => setTab("library")} />}
+        {tab === "home" && <HomeScreen onStart={() => setTraining(true)} onProfile={() => setTab("profile")} onRun={() => setTab("run")} />}
         {tab === "library" && <LibraryScreen onStarted={() => setTab("home")} />}
         {tab === "diet" && <DietScreen />}
         {tab === "progress" && <ProgressScreen />}

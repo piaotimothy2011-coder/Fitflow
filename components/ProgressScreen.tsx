@@ -7,6 +7,7 @@ import { recoverySnapshot } from "@/lib/muscleRecovery";
 import { computeRecords } from "@/lib/personalRecords";
 import { muscleDisplayName, recoveryStatus } from "@/lib/muscle";
 import { weightUnit } from "@/lib/units";
+import { distanceDisplay, distanceUnitLabel, formatDuration, paceDisplay, paceUnitLabel } from "@/lib/runMetrics";
 
 function startOfWeek(d: Date) {
   const x = new Date(d); const day = (x.getDay() + 6) % 7;
@@ -29,8 +30,9 @@ function Panel({ children }: { children: React.ReactNode }) {
 }
 
 export default function ProgressScreen() {
-  const { logs, setLogs, preferences } = useApp();
+  const { logs, setLogs, runs, preferences } = useApp();
   const unit = weightUnit(preferences.units);
+  const recentRuns = [...runs].slice(0, 5);
 
   const dayset = new Set(logs.map((l) => new Date(l.date).toDateString()));
   let streak = 0;
@@ -120,6 +122,29 @@ export default function ProgressScreen() {
           </div>
         )}
       </Panel>
+
+      {/* recent runs */}
+      {recentRuns.length > 0 && (
+        <Panel>
+          <SectionLabel className="mb-3">Recent runs</SectionLabel>
+          <div className="space-y-2.5">
+            {recentRuns.map((r) => (
+              <div key={r.id} className="flex items-center gap-3">
+                <span className="w-9 h-9 rounded-xl bg-accentGreen/15 text-accentGreen flex items-center justify-center shrink-0"><Icon name="run" size={17} /></span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-white text-[14px] font-medium">
+                    {distanceDisplay(r.distanceMeters, preferences.units)} {distanceUnitLabel(preferences.units)}
+                    <span className="text-textFaint font-normal"> · {formatDuration(r.durationSeconds)}</span>
+                  </div>
+                  <div className="text-textFaint text-[12px]">
+                    {new Date(r.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {paceDisplay(r.durationSeconds, r.distanceMeters, preferences.units)} {paceUnitLabel(preferences.units)} · {r.calories} kcal
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      )}
 
       {/* recovery */}
       <Panel>

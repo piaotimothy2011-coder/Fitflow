@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import {
   type Survey, type Workout, type WorkoutLog, type User, type UserPreferences,
-  type MealEntry, type WaterEntry, type SetLog, type WorkoutTemplate,
+  type MealEntry, type WaterEntry, type SetLog, type WorkoutTemplate, type RunLog,
   emptySurvey, defaultPreferences, uuid,
   exerciseCompletedSetCount, makeFreshCopy,
 } from "@/lib/models";
@@ -31,6 +31,7 @@ interface AppStateValue {
   meals: MealEntry[];
   water: WaterEntry[];
   templates: WorkoutTemplate[];
+  runs: RunLog[];
   preferences: UserPreferences;
   // actions
   signUp: (name: string, email?: string) => void;               // local-only mode
@@ -48,6 +49,7 @@ interface AppStateValue {
   addWater: (oz: number) => void;
   saveTemplate: (name: string, w: Workout) => void;
   deleteTemplate: (id: string) => void;
+  addRun: (run: RunLog) => void;
   setPreferences: (p: UserPreferences) => void;
   goToSurvey: () => void;
   resetAll: () => void;
@@ -77,6 +79,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [meals, setMeals] = useState<MealEntry[]>([]);
   const [water, setWater] = useState<WaterEntry[]>([]);
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
+  const [runs, setRuns] = useState<RunLog[]>([]);
   const [preferences, setPreferencesState] = useState<UserPreferences>(defaultPreferences());
   const [route, setRoute] = useState<Route>("welcome");
 
@@ -92,6 +95,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setMeals(Storage.loadMeals());
     setWater(Storage.loadWater());
     setTemplates(Storage.loadTemplates());
+    setRuns(Storage.loadRuns());
     setProgram(Storage.loadProgram());
     setProgramIndex(Storage.loadProgramIndex());
     setPreferencesState(Storage.loadPreferences());
@@ -193,7 +197,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     Storage.clearAll();
     setUser(null); setSurveyState(emptySurvey()); setCurrentWorkoutState(null);
     setLogsState([]); setSetLogs([]); setMeals([]); setWater([]); setTemplates([]);
-    setProgram([]); setProgramIndex(0);
+    setRuns([]); setProgram([]); setProgramIndex(0);
     setPreferencesState(defaultPreferences());
     setRoute("welcome");
   }, []);
@@ -270,6 +274,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setTemplates((prev) => { const next = prev.filter((x) => x.id !== id); Storage.saveTemplates(next); return next; });
   }, []);
 
+  const addRun = useCallback((run: RunLog) => {
+    setRuns((prev) => { const next = [run, ...prev]; Storage.saveRuns(next); return next; });
+  }, []);
+
   const setPreferences = useCallback((p: UserPreferences) => {
     setPreferencesState(p); Storage.savePreferences(p);
   }, []);
@@ -280,16 +288,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     Storage.clearAll();
     setUser(null); setSurveyState(emptySurvey()); setCurrentWorkoutState(null);
     setLogsState([]); setSetLogs([]); setMeals([]); setWater([]); setTemplates([]);
-    setProgram([]); setProgramIndex(0);
+    setRuns([]); setProgram([]); setProgramIndex(0);
     setPreferencesState(defaultPreferences()); setRoute("welcome");
   }, []);
 
   const value: AppStateValue = {
     hydrated, cloudEnabled: supabaseEnabled, route, user, survey, currentWorkout, program, programIndex,
-    logs, setLogs, meals, water, templates, preferences,
+    logs, setLogs, meals, water, templates, runs, preferences,
     signUp, signUpEmail, signInEmail, signOut, setSurvey, setCurrentWorkout, installProgram, startSession,
     finishWorkout, appendSetLogs, addMeal, deleteMeal, addWater, saveTemplate,
-    deleteTemplate, setPreferences, goToSurvey, resetAll,
+    deleteTemplate, addRun, setPreferences, goToSurvey, resetAll,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

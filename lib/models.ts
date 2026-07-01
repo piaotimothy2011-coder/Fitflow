@@ -240,3 +240,14 @@ export interface WorkoutTemplate {
   createdAt: string;
   workout: Workout;
 }
+
+// ---- Outdoor run ----
+export interface RunLog {
+  id: string;
+  date: string;            // ISO
+  durationSeconds: number; // active (unpaused) time
+  distanceMeters: number;
+  calories: number;
+  // Average pace in seconds per kilometre (0 when distance is negligible).
+  avgPaceSecPerKm: number;
+}

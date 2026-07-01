@@ -28,8 +28,8 @@ function Ring({ done, total }: { done: number; total: number }) {
   );
 }
 
-export default function HomeScreen({ onStart, onProfile, onLibrary }:
-  { onStart: () => void; onProfile?: () => void; onLibrary?: () => void }) {
+export default function HomeScreen({ onStart, onProfile, onRun }:
+  { onStart: () => void; onProfile?: () => void; onRun?: () => void }) {
   const { user, currentWorkout, survey, setLogs, preferences, goToSurvey, setCurrentWorkout, saveTemplate, program, programIndex, startSession } = useApp();
   const [toast, setToast] = useState<string | null>(null);
   const [detail, setDetail] = useState<Exercise | null>(null);
@@ -117,7 +117,7 @@ export default function HomeScreen({ onStart, onProfile, onLibrary }:
       <div className="flex gap-2.5 mt-3">
         <Quick icon="spark" title="Smart plan" sub="Uses your logs" onClick={() => regenerate(true)} />
         <Quick icon="regenerate" title="Fresh mix" sub="New exercises" onClick={() => regenerate(false)} />
-        <Quick icon="library" title="Library" sub="Browse goals" onClick={onLibrary} />
+        <Quick icon="run" title="Run Plan" sub="Track a run" onClick={onRun} />
       </div>
 
       {/* this week */}

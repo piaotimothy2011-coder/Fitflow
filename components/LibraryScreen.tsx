@@ -5,15 +5,21 @@ import { SectionLabel } from "./ui";
 import { Icon } from "./icons";
 import { SurveyCatalog, goalIcon } from "@/lib/surveyCatalog";
 import { makeFreshCopy } from "@/lib/models";
+import { buildWorkout } from "@/lib/workoutGenerator";
+import { applyProgression } from "@/lib/progressionEngine";
 
 export default function LibraryScreen({ onStarted }: { onStarted: () => void }) {
-  const { survey, setSurvey, goToSurvey, templates, deleteTemplate, setCurrentWorkout } = useApp();
+  const { survey, setSurvey, templates, deleteTemplate, setCurrentWorkout, setLogs, preferences } = useApp();
 
-  // Picking a goal re-runs the onboarding flow (pre-set to that goal) so the
-  // user customises a real plan — it is not generated randomly on tap.
+  // Changing the goal keeps the rest of your survey answers and instantly
+  // rebuilds today's workout for the new goal — no need to retake the survey.
   const customizeForGoal = (goal: string) => {
-    setSurvey({ ...survey, goal });
-    goToSurvey();
+    const next = { ...survey, goal };
+    setSurvey(next);
+    let w = buildWorkout(next);
+    w = applyProgression(w, setLogs, preferences.units);
+    setCurrentWorkout(w);
+    onStarted();
   };
 
   const startTemplate = (id: string) => {
@@ -26,7 +32,7 @@ export default function LibraryScreen({ onStarted }: { onStarted: () => void }) 
   return (
     <div className="px-6 pt-9">
       <h1 className="font-display text-[44px] text-white leading-none">Library</h1>
-      <p className="text-textMuted text-[14px] mt-1.5 mb-6">Re-run a saved plan, or build a fresh customised plan for any goal.</p>
+      <p className="text-textMuted text-[14px] mt-1.5 mb-6">Re-run a saved plan, or switch your plan to any goal — your workout updates instantly.</p>
 
       {templates.length > 0 && (
         <div className="mb-7">
