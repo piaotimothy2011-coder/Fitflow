@@ -145,6 +145,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") setAuthRecovery(true);
     });
+    // Also detect the recovery link directly from the URL (Supabase adds
+    // `type=recovery` to the redirect hash), in case the event fires early.
+    try {
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      if (hash.get("type") === "recovery") setAuthRecovery(true);
+    } catch { /* ignore */ }
     (async () => {
       try {
         const { data } = await supabase.auth.getSession();

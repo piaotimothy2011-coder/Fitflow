@@ -12,6 +12,6 @@ export const supabaseEnabled = Boolean(url && key);
 
 export const supabase: SupabaseClient | null = supabaseEnabled
   ? createClient(url as string, key as string, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "implicit" },
     })
   : null;
