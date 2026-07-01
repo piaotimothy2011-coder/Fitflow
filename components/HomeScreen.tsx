@@ -10,6 +10,7 @@ import { muscleDisplayName } from "@/lib/muscle";
 import { SurveyCatalog, goalIcon } from "@/lib/surveyCatalog";
 import { buildWorkout, buildSmartPlan } from "@/lib/workoutGenerator";
 import { applyProgression } from "@/lib/progressionEngine";
+import { distanceDisplay, distanceUnitLabel, formatDuration, paceDisplay, paceUnitLabel } from "@/lib/runMetrics";
 
 function Ring({ done, total }: { done: number; total: number }) {
   const pct = total ? done / total : 0;
@@ -28,9 +29,9 @@ function Ring({ done, total }: { done: number; total: number }) {
   );
 }
 
-export default function HomeScreen({ onStart, onProfile, onRun }:
-  { onStart: () => void; onProfile?: () => void; onRun?: () => void }) {
-  const { user, currentWorkout, survey, setLogs, preferences, goToSurvey, setCurrentWorkout, saveTemplate, program, programIndex, startSession } = useApp();
+export default function HomeScreen({ onStart, onProfile, onRun, onEdit }:
+  { onStart: () => void; onProfile?: () => void; onRun?: () => void; onEdit?: () => void }) {
+  const { user, currentWorkout, survey, setLogs, preferences, goToSurvey, setCurrentWorkout, saveTemplate, program, programIndex, startSession, runs } = useApp();
   const [toast, setToast] = useState<string | null>(null);
   const [detail, setDetail] = useState<Exercise | null>(null);
   if (!currentWorkout) return null;
@@ -42,6 +43,7 @@ export default function HomeScreen({ onStart, onProfile, onRun }:
   const totalSets = currentWorkout.exercises.reduce((a, e) => a + e.sets.length, 0);
   const doneSets = currentWorkout.exercises.reduce((a, e) => a + e.sets.filter((s) => s.isCompleted).length, 0);
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+  const todayRun = runs.find((r) => new Date(r.date).toDateString() === new Date().toDateString());
 
   const ping = (m: string) => { setToast(m); setTimeout(() => setToast(null), 1800); };
   const regenerate = (smart: boolean) => {
@@ -120,6 +122,21 @@ export default function HomeScreen({ onStart, onProfile, onRun }:
         <Quick icon="run" title="Run Plan" sub="Track a run" onClick={onRun} />
       </div>
 
+      {todayRun && (
+        <button onClick={onRun}
+          className="w-full mt-3 rounded-2xl border border-accentGreen/25 bg-[#10160F] p-4 flex items-center gap-3 text-left active:scale-[0.99] transition hover:border-accentGreen/40">
+          <span className="w-11 h-11 rounded-xl bg-accentGreen/15 text-accentGreen flex items-center justify-center shrink-0"><Icon name="run" size={20} /></span>
+          <div className="min-w-0 flex-1">
+            <div className="text-accentGreen text-[11px] font-bold uppercase tracking-wider">Today&apos;s run</div>
+            <div className="text-white text-[15px] font-semibold mt-0.5">
+              {distanceDisplay(todayRun.distanceMeters, preferences.units)} {distanceUnitLabel(preferences.units)} · {formatDuration(todayRun.durationSeconds)}
+            </div>
+            <div className="text-textFaint text-[12px]">{paceDisplay(todayRun.durationSeconds, todayRun.distanceMeters, preferences.units)} {paceUnitLabel(preferences.units)} · {todayRun.calories} kcal</div>
+          </div>
+          <span className="text-textDisabled"><Icon name="chevron" size={18} /></span>
+        </button>
+      )}
+
       {/* this week */}
       {program.length > 1 && (
         <div className="mt-7">
@@ -169,7 +186,7 @@ export default function HomeScreen({ onStart, onProfile, onRun }:
 
       {/* edit / regenerate */}
       <div className="flex gap-2.5 mt-5">
-        <ActionBtn icon="edit" label="Edit" onClick={onStart} />
+        <ActionBtn icon="edit" label="Edit" onClick={onEdit} />
         <ActionBtn icon="regenerate" label="Regenerate" onClick={() => regenerate(true)} />
       </div>
 

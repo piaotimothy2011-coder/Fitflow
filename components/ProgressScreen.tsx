@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useApp } from "./AppState";
 import { ProgressBar, SectionLabel } from "./ui";
 import { Icon, type IconName } from "./icons";
@@ -8,6 +8,8 @@ import { computeRecords } from "@/lib/personalRecords";
 import { muscleDisplayName, recoveryStatus } from "@/lib/muscle";
 import { weightUnit } from "@/lib/units";
 import { distanceDisplay, distanceUnitLabel, formatDuration, paceDisplay, paceUnitLabel } from "@/lib/runMetrics";
+import RunDetailSheet from "./RunDetailSheet";
+import type { RunLog } from "@/lib/models";
 
 function startOfWeek(d: Date) {
   const x = new Date(d); const day = (x.getDay() + 6) % 7;
@@ -32,7 +34,9 @@ function Panel({ children }: { children: React.ReactNode }) {
 export default function ProgressScreen() {
   const { logs, setLogs, runs, preferences } = useApp();
   const unit = weightUnit(preferences.units);
-  const recentRuns = [...runs].slice(0, 5);
+  const [runDetail, setRunDetail] = useState<RunLog | null>(null);
+  const recentRuns = [...runs].slice(0, 20);
+  const totalRunMeters = runs.reduce((a, r) => a + r.distanceMeters, 0);
 
   const dayset = new Set(logs.map((l) => new Date(l.date).toDateString()));
   let streak = 0;
@@ -123,25 +127,33 @@ export default function ProgressScreen() {
         )}
       </Panel>
 
-      {/* recent runs */}
-      {recentRuns.length > 0 && (
+      {/* runs */}
+      {runs.length > 0 && (
         <Panel>
-          <SectionLabel className="mb-3">Recent runs</SectionLabel>
-          <div className="space-y-2.5">
-            {recentRuns.map((r) => (
-              <div key={r.id} className="flex items-center gap-3">
-                <span className="w-9 h-9 rounded-xl bg-accentGreen/15 text-accentGreen flex items-center justify-center shrink-0"><Icon name="run" size={17} /></span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-white text-[14px] font-medium">
-                    {distanceDisplay(r.distanceMeters, preferences.units)} {distanceUnitLabel(preferences.units)}
-                    <span className="text-textFaint font-normal"> · {formatDuration(r.durationSeconds)}</span>
+          <div className="flex items-center justify-between mb-3">
+            <SectionLabel>Runs</SectionLabel>
+            <span className="text-textFaint text-[12px]">{runs.length} run{runs.length === 1 ? "" : "s"} · {distanceDisplay(totalRunMeters, preferences.units)} {distanceUnitLabel(preferences.units)}</span>
+          </div>
+          <div className="space-y-1">
+            {recentRuns.map((r) => {
+              const isToday = new Date(r.date).toDateString() === new Date().toDateString();
+              return (
+                <button key={r.id} onClick={() => setRunDetail(r)}
+                  className="w-full flex items-center gap-3 text-left rounded-xl px-1 py-1.5 active:scale-[0.99] transition hover:bg-white/[0.03]">
+                  <span className="w-9 h-9 rounded-xl bg-accentGreen/15 text-accentGreen flex items-center justify-center shrink-0"><Icon name="run" size={17} /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-white text-[14px] font-medium flex items-center gap-2">
+                      <span>{distanceDisplay(r.distanceMeters, preferences.units)} {distanceUnitLabel(preferences.units)} · {formatDuration(r.durationSeconds)}</span>
+                      {isToday && <span className="text-[9.5px] font-bold uppercase tracking-wider text-deepGreen bg-accentGreen rounded-full px-2 py-0.5">Today</span>}
+                    </div>
+                    <div className="text-textFaint text-[12px]">
+                      {new Date(r.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {paceDisplay(r.durationSeconds, r.distanceMeters, preferences.units)} {paceUnitLabel(preferences.units)} · {r.calories} kcal
+                    </div>
                   </div>
-                  <div className="text-textFaint text-[12px]">
-                    {new Date(r.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {paceDisplay(r.durationSeconds, r.distanceMeters, preferences.units)} {paceUnitLabel(preferences.units)} · {r.calories} kcal
-                  </div>
-                </div>
-              </div>
-            ))}
+                  <span className="text-textDisabled"><Icon name="chevron" size={18} /></span>
+                </button>
+              );
+            })}
           </div>
         </Panel>
       )}
@@ -189,6 +201,8 @@ export default function ProgressScreen() {
           </div>
         )}
       </Panel>
+
+      {runDetail && <RunDetailSheet run={runDetail} onClose={() => setRunDetail(null)} />}
     </div>
   );
 }

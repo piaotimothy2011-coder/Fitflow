@@ -4,6 +4,7 @@ import { useApp } from "./AppState";
 import HomeScreen from "./HomeScreen";
 import LibraryScreen from "./LibraryScreen";
 import OutdoorRun from "./OutdoorRun";
+import WorkoutEditor from "./WorkoutEditor";
 import ActiveWorkout from "./ActiveWorkout";
 import ProgressScreen from "./ProgressScreen";
 import DietScreen from "./DietScreen";
@@ -26,6 +27,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 export default function MainTabs() {
   const [tab, setTab] = useState<Tab>("home");
   const [training, setTraining] = useState(false);
+  const [editing, setEditing] = useState(false);
   const { currentWorkout } = useApp();
 
   if (training && currentWorkout) {
@@ -37,11 +39,16 @@ export default function MainTabs() {
     return <OutdoorRun onExit={() => setTab("home")} />;
   }
 
+  // Full-screen workout editor.
+  if (editing && currentWorkout) {
+    return <WorkoutEditor onExit={() => setEditing(false)} />;
+  }
+
   return (
     <div className="relative min-h-screen flex flex-col">
       <Ambient />
       <div className="relative z-10 flex-1 overflow-y-auto no-scrollbar pb-24">
-        {tab === "home" && <HomeScreen onStart={() => setTraining(true)} onProfile={() => setTab("profile")} onRun={() => setTab("run")} />}
+        {tab === "home" && <HomeScreen onStart={() => setTraining(true)} onProfile={() => setTab("profile")} onRun={() => setTab("run")} onEdit={() => setEditing(true)} />}
         {tab === "library" && <LibraryScreen onStarted={() => setTab("home")} />}
         {tab === "diet" && <DietScreen />}
         {tab === "progress" && <ProgressScreen />}

@@ -116,6 +116,49 @@ export const EXERCISE_CATALOG: CatalogExercise[] = [
   // Corrective
   E("Wall Slides", "Keep low back flat", ["No equipment"], ["Back and posture", "Shoulders", "Upper body"], ["shoulders", "upperBack"], ["traps"], 0, ["corrective", "mobility"]),
   E("90/90 Hip Switch", "Stay tall, even pressure", ["No equipment", "Yoga mat"], ["Lower body", "Glutes and legs", "Back and posture"], ["glutes"], ["lowerBack"], 1, ["corrective", "mobility"]),
+  // ---- Expanded catalog ----
+  // More bodyweight
+  E("Incline Push-up", "Hands elevated, body straight", ["No equipment"], ["Upper body", "Chest and arms"], ["chest", "triceps"], ["shoulders"], 0, ["hiit", "endurance", "general", "hypertrophy"]),
+  E("Diamond Push-up", "Hands together, elbows tight", ["No equipment", "Yoga mat"], ["Chest and arms", "Upper body"], ["triceps", "chest"], ["shoulders"], 2, ["hypertrophy", "strength", "hiit"]),
+  E("Pike Push-up", "Hips high, press overhead", ["No equipment", "Yoga mat"], ["Shoulders", "Upper body"], ["shoulders"], ["triceps"], 2, ["hypertrophy", "strength"]),
+  E("Side Plank", "Stack hips, brace obliques", ["No equipment", "Yoga mat"], ["Core and abs"], ["obliques"], ["abs", "shoulders"], 1, ["general", "corrective", "endurance"]),
+  E("Superman", "Lift chest and thighs, squeeze", ["No equipment", "Yoga mat"], ["Back and posture", "Core and abs"], ["lowerBack"], ["glutes", "upperBack"], 0, ["corrective", "general"]),
+  E("Bicycle Crunch", "Elbow to opposite knee, slow", ["No equipment", "Yoga mat"], ["Core and abs"], ["abs", "obliques"], [], 1, ["hiit", "general", "hypertrophy"]),
+  E("Flutter Kicks", "Low back down, small kicks", ["No equipment", "Yoga mat"], ["Core and abs"], ["abs"], ["obliques"], 1, ["hiit", "endurance", "general"]),
+  E("Jumping Jacks", "Steady rhythm, full range", ["No equipment"], ["Full body", "Lower body"], ["calves", "shoulders"], ["quads"], 0, ["hiit", "endurance", "general"]),
+  E("Butt Kicks", "Fast heels to glutes", ["No equipment"], ["Full body", "Lower body"], ["hamstrings", "calves"], ["glutes"], 0, ["hiit", "endurance"]),
+  E("Bulgarian Split Squat", "Back foot elevated, drop straight", ["No equipment", "Dumbbells"], ["Lower body", "Glutes and legs"], ["quads", "glutes"], ["hamstrings"], 2, ["hypertrophy", "strength", "general"]),
+  E("Step-ups", "Drive through the top foot", ["No equipment", "Dumbbells"], ["Lower body", "Glutes and legs"], ["quads", "glutes"], ["hamstrings", "calves"], 1, ["general", "endurance", "hiit"]),
+  E("Standing Calf Raise", "Full stretch, pause at top", ["No equipment", "Dumbbells"], ["Lower body", "Glutes and legs"], ["calves"], [], 0, ["hypertrophy", "general", "endurance"]),
+  // More dumbbell
+  E("Dumbbell Bench Press", "Press up and slightly in", ["Dumbbells"], ["Chest and arms", "Upper body"], ["chest"], ["triceps", "shoulders"], 1, ["hypertrophy", "strength"]),
+  E("Dumbbell Fly", "Slight elbow bend, big stretch", ["Dumbbells"], ["Chest and arms"], ["chest"], ["shoulders"], 1, ["hypertrophy"]),
+  E("Dumbbell Hammer Curl", "Neutral grip, no swing", ["Dumbbells"], ["Chest and arms", "Upper body"], ["biceps"], ["forearms"], 1, ["hypertrophy"]),
+  E("Dumbbell Triceps Extension", "Elbows in, lower behind head", ["Dumbbells"], ["Chest and arms", "Upper body"], ["triceps"], [], 1, ["hypertrophy"]),
+  E("Dumbbell Front Raise", "Lift to shoulder height, control", ["Dumbbells"], ["Shoulders"], ["shoulders"], [], 1, ["hypertrophy"]),
+  E("Dumbbell Thruster", "Squat then press in one drive", ["Dumbbells"], ["Full body"], ["shoulders", "quads"], ["glutes", "triceps"], 2, ["hiit", "power", "strength"]),
+  E("Dumbbell Deadlift", "Hips back, flat back, stand tall", ["Dumbbells"], ["Glutes and legs", "Back and posture"], ["hamstrings", "glutes"], ["lowerBack"], 1, ["strength", "hypertrophy", "general"]),
+  // More barbell
+  E("Front Squat", "Elbows high, upright torso", ["Barbell and rack", "Full gym"], ["Lower body", "Glutes and legs"], ["quads", "glutes"], ["abs", "lowerBack"], 3, ["strength", "hypertrophy", "power"]),
+  E("Hip Thrust", "Chin tucked, squeeze at top", ["Barbell and rack", "Full gym"], ["Glutes and legs", "Lower body"], ["glutes"], ["hamstrings"], 2, ["hypertrophy", "strength"]),
+  E("Incline Bench Press", "Bar to upper chest, tuck elbows", ["Barbell and rack", "Full gym"], ["Chest and arms", "Upper body"], ["chest"], ["shoulders", "triceps"], 2, ["strength", "hypertrophy"]),
+  // More kettlebell
+  E("Kettlebell Goblet Squat", "Hold at chest, sit down tall", ["Kettlebells"], ["Lower body", "Glutes and legs"], ["quads", "glutes"], ["hamstrings", "abs"], 1, ["hypertrophy", "strength", "hiit"]),
+  E("Kettlebell Clean and Press", "Tame the arc, press overhead", ["Kettlebells"], ["Full body"], ["shoulders", "glutes"], ["quads", "triceps"], 2, ["power", "strength", "hiit"]),
+  // Machines
+  E("Leg Press", "Feet mid-platform, control depth", ["Cable machine", "Full gym"], ["Lower body", "Glutes and legs"], ["quads", "glutes"], ["hamstrings"], 1, ["hypertrophy", "strength"]),
+  E("Leg Curl", "Curl heels, no hip rise", ["Cable machine", "Full gym"], ["Glutes and legs", "Lower body"], ["hamstrings"], ["calves"], 1, ["hypertrophy"]),
+  E("Leg Extension", "Squeeze quads at the top", ["Cable machine", "Full gym"], ["Lower body"], ["quads"], [], 1, ["hypertrophy"]),
+  E("Cable Face Pull", "Pull to eyes, elbows high", ["Cable machine", "Full gym"], ["Back and posture", "Shoulders"], ["upperBack", "shoulders"], ["traps"], 1, ["hypertrophy", "corrective", "general"]),
+  // More pull-up bar
+  E("Chin-up", "Palms toward you, chest to bar", ["Pull-up bar", "Full gym"], ["Back and posture", "Upper body", "Chest and arms"], ["lats", "biceps"], ["upperBack", "forearms"], 2, ["strength", "hypertrophy", "general"]),
+  // More cardio
+  E("Rowing Machine", "Legs, then hips, then arms", ["Cardio machines", "Full gym"], ["Full body", "Back and posture"], ["lats", "quads"], ["hamstrings", "biceps"], 1, ["endurance", "hiit", "general"]),
+  E("Elliptical", "Smooth stride, upright posture", ["Cardio machines", "Full gym"], ["Full body", "Lower body"], ["quads", "glutes"], ["hamstrings", "calves"], 0, ["endurance", "general"]),
+  // More mobility
+  E("Downward Dog", "Long spine, heels reaching down", ["No equipment", "Yoga mat"], ["Full body", "Back and posture"], ["hamstrings", "shoulders"], ["calves"], 0, ["mobility", "mindful"]),
+  E("Cobra Stretch", "Open chest, relax glutes", ["No equipment", "Yoga mat"], ["Back and posture", "Core and abs"], ["lowerBack"], ["abs", "chest"], 0, ["mobility", "mindful", "corrective"]),
+  E("World's Greatest Stretch", "Big lunge, rotate open", ["No equipment", "Yoga mat"], ["Full body", "Lower body"], ["glutes", "hamstrings"], ["quads", "upperBack"], 1, ["mobility", "corrective"]),
 ];
 
 function intersects<T>(a: Iterable<T>, b: Set<T>): boolean {

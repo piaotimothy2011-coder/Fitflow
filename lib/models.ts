@@ -250,4 +250,7 @@ export interface RunLog {
   calories: number;
   // Average pace in seconds per kilometre (0 when distance is negligible).
   avgPaceSecPerKm: number;
+  maxSpeedMps?: number;                    // top speed observed during the run
+  steps?: number;                          // total footfalls (motion tracking)
+  path?: { lat: number; lng: number }[];   // recorded GPS route
 }
