@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useApp } from "./AppState";
 import { PrimaryButton } from "./ui";
 import { Icon, type IconName } from "./icons";
@@ -22,6 +22,19 @@ export default function SurveyFlow() {
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Survey>({ ...survey, mealsPerDay: survey.mealsPerDay || 3 });
   const [building, setBuilding] = useState(false);
+
+  // Pre-fill every previous answer when retaking. Runs once as soon as a saved
+  // survey is available, so nothing you already chose is lost.
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (seededRef.current) return;
+    const hasAnswers = !!survey.goal || !!survey.level || survey.equipment.length > 0
+      || survey.focus.length > 0 || survey.weightKg != null || survey.heightCm != null;
+    if (hasAnswers) {
+      setDraft({ ...survey, mealsPerDay: survey.mealsPerDay || 3 });
+      seededRef.current = true;
+    }
+  }, [survey]);
 
   const update = (patch: Partial<Survey>) => setDraft((d) => ({ ...d, ...patch }));
   const toggle = (arr: string[], v: string): string[] =>
